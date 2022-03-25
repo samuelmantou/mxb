@@ -1,4 +1,4 @@
-package cdd
+package console
 
 import (
 	"context"
@@ -12,10 +12,8 @@ type job struct {
 	cancel context.CancelFunc
 }
 
-func (j *job) Login() {
-	chromedp.Run(j.ctx,
-		chromedp.Click(`#root > div > div > div > main > div > section.login-content.undefined > div > div > div > div.login-tab > div > div.tab-item.last-item`),
-	)
+func (j *job) Login(ctx context.Context) {
+
 }
 
 func (j *job) Close() {
@@ -24,7 +22,6 @@ func (j *job) Close() {
 
 func (j *job) Navigate(ctx context.Context) (context.Context, error) {
 	ctx, j.cancel = chromedp.NewContext(ctx)
-	j.ctx = ctx
 	err := chromedp.Run(ctx,
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			_, err := page.AddScriptToEvaluateOnNewDocument("Object.defineProperty(navigator, 'webdriver', { get: () => false, });").Do(ctx)
@@ -33,7 +30,7 @@ func (j *job) Navigate(ctx context.Context) (context.Context, error) {
 			}
 			return nil
 		}),
-		chromedp.Navigate("https://mms.pinduoduo.com"),
+		chromedp.Navigate("http://localhost:9999"),
 	)
 	return ctx, err
 }

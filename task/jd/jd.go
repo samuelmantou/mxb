@@ -1,9 +1,41 @@
 package jd
 
-import "github.com/chromedp/chromedp"
+import (
+	"context"
+	"github.com/chromedp/cdproto/page"
+	"github.com/chromedp/chromedp"
+	"mxb/task"
+)
 
-func Task() chromedp.Tasks {
-	return []chromedp.Action{
+type job struct {
+	ctx context.Context
+	cancel context.CancelFunc
+}
 
-	}
+func (j *job) Login() {
+
+}
+
+func (j *job) Close() {
+	j.cancel()
+}
+
+func (j *job) Navigate(ctx context.Context) (context.Context, error) {
+	ctx, j.cancel = chromedp.NewContext(ctx)
+	err := chromedp.Run(ctx,
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			_, err := page.AddScriptToEvaluateOnNewDocument("Object.defineProperty(navigator, 'webdriver', { get: () => false, });").Do(ctx)
+			if err != nil {
+				return err
+			}
+			return nil
+		}),
+		chromedp.Navigate("https://procurement.jd.com/procurement/initListPage"),
+	)
+	return ctx, err
+}
+
+func New() task.Job {
+	j := job{}
+	return &j
 }

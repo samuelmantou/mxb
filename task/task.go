@@ -2,15 +2,29 @@ package task
 
 import (
 	"context"
-	"fmt"
-	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
-	"mxb/task/cdd"
-	"mxb/task/jd"
+	"log"
 )
 
-func Run(runChan <-chan struct{}, terminalChan <-chan struct{}) {
-	var err error
+type Job interface {
+	Navigate(ctx context.Context) (context.Context, error)
+	Login()
+	Close()
+}
+
+type Pipe struct {
+	jobs []Job
+}
+
+func NewPipe(jobs ...Job) *Pipe {
+	p := Pipe{
+		jobs: jobs,
+	}
+
+	return &p
+}
+
+func (receiver *Pipe) Start(ctx context.Context) {
 	options := []chromedp.ExecAllocatorOption{
 		chromedp.Flag("headless", false),
 		chromedp.DisableGPU,
@@ -19,66 +33,20 @@ func Run(runChan <-chan struct{}, terminalChan <-chan struct{}) {
 		chromedp.UserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36"),
 	}
 	options = append(chromedp.DefaultExecAllocatorOptions[:], options...)
-	allocCtx, cancel := chromedp.NewExecAllocator(context.Background(), options...)
+	jobCtx, cancel := chromedp.NewExecAllocator(ctx, options...)
 	defer cancel()
 
-	cddCtx, cancel := chromedp.NewContext(allocCtx)
-	defer cancel()
-
-	err = chromedp.Run(cddCtx,
-		chromedp.ActionFunc(func(ctx context.Context) error {
-			_, err := page.AddScriptToEvaluateOnNewDocument("Object.defineProperty(navigator, 'webdriver', { get: () => false, });").Do(ctx)
-			if err != nil {
-				return err
-			}
-			return nil
-		}),
-		chromedp.Navigate("https://mms.pinduoduo.com"),
-	)
-
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	jdCtx, cancel := chromedp.NewContext(cddCtx)
-	defer cancel()
-
-	err = chromedp.Run(jdCtx,
-		chromedp.ActionFunc(func(ctx context.Context) error {
-			_, err := page.AddScriptToEvaluateOnNewDocument("Object.defineProperty(navigator, 'webdriver', { get: () => false, });").Do(ctx)
-			if err != nil {
-				return err
-			}
-			return nil
-		}),
-		chromedp.Navigate("https://procurement.jd.com/procurement/initListPage"),
-	)
-
-	ctrCtx, cancel := chromedp.NewContext(jdCtx)
-	defer cancel()
-	err = chromedp.Run(ctrCtx,
-		chromedp.Navigate("http://localhost:9999"),
-	)
-
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	go func(cddCtx context.Context, jdCtx context.Context) {
-		for {
-			select {
-			case _, ok := <-runChan:
-				if !ok {
-					return
-				}
-				err = chromedp.Run(cddCtx,
-					cdd.Task(),
-				)
-				err = chromedp.Run(jdCtx,
-					jd.Task(),
-				)
-			}
+	var err error
+	for _, j := range receiver.jobs {
+		jobCtx, err = j.Navigate(jobCtx)
+		if err != nil {
+			log.Println(err)
 		}
-	}(cddCtx, jdCtx)
-	<-terminalChan
+	}
+	for _, j := range receiver.jobs {
+		go j.Login()
+	}
+
+	<-ctx.Done()
+	log.Println("tasks is closing")
 }

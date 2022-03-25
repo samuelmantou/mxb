@@ -1,39 +1,49 @@
 package main
 
 import (
-	"golang.org/x/sync/errgroup"
+	"context"
 	"log"
 	"mxb/router"
 	"mxb/task"
+	"mxb/task/cdd"
+	consoleJob "mxb/task/console"
+	"mxb/task/jd"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
 func main() {
-	var eg errgroup.Group
-	terminalChan := make(chan struct{})
-	runChan := make(chan struct{})
-	eg.Go(func() error {
-		srv := http.Server{
-			WriteTimeout: 60 * time.Second,
-			ReadTimeout: 60 * time.Second,
-			Addr: ":9999",
-			Handler: router.Router(runChan, terminalChan),
-		}
-		if err := srv.ListenAndServe(); err != nil {
-			return err
-		}
-		return nil
-	})
+	sig := make(chan os.Signal)
+	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 
-	eg.Go(func() error {
-		task.Run(runChan, terminalChan)
-		return nil
-	})
+	ctx, cancel := context.WithCancel(context.Background())
 
-	err := eg.Wait()
-	if err != nil {
-		log.Println(err)
+	p := task.NewPipe(cdd.New(), jd.New(), consoleJob.New())
+	go func(ctx context.Context) {
+		p.Start(ctx)
+	}(ctx)
+
+	console := router.NewConsole()
+	srv := http.Server{
+		WriteTimeout: 60 * time.Second,
+		ReadTimeout: 60 * time.Second,
+		Addr: ":9999",
+		Handler: console.Handler(),
 	}
-	<-make(chan struct{})
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			log.Println(err)
+		}
+	}()
+
+	select {
+	case <-sig:
+	case <-console.Done():
+	}
+	srv.Shutdown(context.Background())
+	cancel()
+	time.Sleep(time.Second * 3)
 }
