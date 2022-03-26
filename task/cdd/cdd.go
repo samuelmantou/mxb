@@ -13,13 +13,12 @@ type job struct {
 	cancel context.CancelFunc
 }
 
-func (j *job) Login() {
+func (j *job) Login(ctx context.Context) error {
 	sel := `#root > div > div > div > main > div > section.login-content.undefined > div > div > div > div.login-tab > div > div.tab-item.last-item`
-	chromedp.Run(j.ctx,
+	return chromedp.Run(j.ctx,
 		chromedp.WaitEnabled(sel),
 		chromedp.Sleep(time.Second * 1),
 		chromedp.Click(sel),
-		chromedp.SendKeys(`#usernameId`, "18620978045", chromedp.ByID),
 	)
 }
 

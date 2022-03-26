@@ -8,7 +8,7 @@ import (
 
 type Job interface {
 	Navigate(ctx context.Context) (context.Context, error)
-	Login()
+	Login(ctx context.Context) error
 	Close()
 }
 
@@ -42,9 +42,10 @@ func (receiver *Pipe) Start(ctx context.Context) {
 		if err != nil {
 			log.Println(err)
 		}
-	}
-	for _, j := range receiver.jobs {
-		j.Login()
+		err = j.Login(jobCtx)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 
 	<-ctx.Done()

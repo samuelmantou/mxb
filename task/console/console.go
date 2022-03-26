@@ -12,8 +12,8 @@ type job struct {
 	cancel context.CancelFunc
 }
 
-func (j *job) Login() {
-
+func (j *job) Login(ctx context.Context) error {
+	return nil
 }
 
 func (j *job) Close() {
