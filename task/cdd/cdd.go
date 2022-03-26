@@ -5,6 +5,7 @@ import (
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
 	"mxb/task"
+	"time"
 )
 
 type job struct {
@@ -13,8 +14,12 @@ type job struct {
 }
 
 func (j *job) Login() {
+	sel := `#root > div > div > div > main > div > section.login-content.undefined > div > div > div > div.login-tab > div > div.tab-item.last-item`
 	chromedp.Run(j.ctx,
-		chromedp.Click(`#root > div > div > div > main > div > section.login-content.undefined > div > div > div > div.login-tab > div > div.tab-item.last-item`),
+		chromedp.WaitEnabled(sel),
+		chromedp.Sleep(time.Second * 1),
+		chromedp.Click(sel),
+		chromedp.SendKeys(`#usernameId`, "18620978045", chromedp.ByID),
 	)
 }
 

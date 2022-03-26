@@ -6,8 +6,6 @@ import (
 	"mxb/router"
 	"mxb/task"
 	"mxb/task/cdd"
-	consoleJob "mxb/task/console"
-	"mxb/task/jd"
 	"net/http"
 	"os"
 	"os/signal"
@@ -21,7 +19,8 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	p := task.NewPipe(cdd.New(), jd.New(), consoleJob.New())
+	//p := task.NewPipe(cdd.New(), jd.New())
+	p := task.NewPipe(cdd.New())
 	go func(ctx context.Context) {
 		p.Start(ctx)
 	}(ctx)
@@ -45,5 +44,5 @@ func main() {
 	}
 	srv.Shutdown(context.Background())
 	cancel()
-	time.Sleep(time.Second * 3)
+	time.Sleep(time.Second)
 }

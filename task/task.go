@@ -44,7 +44,7 @@ func (receiver *Pipe) Start(ctx context.Context) {
 		}
 	}
 	for _, j := range receiver.jobs {
-		go j.Login()
+		j.Login()
 	}
 
 	<-ctx.Done()
