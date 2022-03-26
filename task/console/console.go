@@ -12,7 +12,7 @@ type job struct {
 	cancel context.CancelFunc
 }
 
-func (j *job) Login(ctx context.Context) error {
+func (j *job) Login(ctx context.Context, data chan<- string) error {
 	return nil
 }
 

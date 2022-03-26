@@ -2,16 +2,19 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"mxb/ws"
 	"text/template"
 )
 
 type Console struct {
 	done chan struct{}
+	wsPool *ws.Pool
 }
 
-func NewConsole() *Console {
+func NewConsole(pool *ws.Pool) *Console {
 	c := Console{
 		done: make(chan struct{}),
+		wsPool: pool,
 	}
 
 	return &c
@@ -36,6 +39,10 @@ func (receiver *Console) Handler() *gin.Engine {
 			panic(err)
 		}
 		t1.Execute(c.Writer, nil)
+	})
+
+	g.GET("/ws", func(c *gin.Context) {
+		receiver.wsPool.Upgrade(c.Writer, c.Request)
 	})
 
 	g.GET("/run", func(c *gin.Context) {

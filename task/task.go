@@ -8,16 +8,18 @@ import (
 
 type Job interface {
 	Navigate(ctx context.Context) (context.Context, error)
-	Login(ctx context.Context) error
+	Login(ctx context.Context, data chan<- string) error
 	Close()
 }
 
 type Pipe struct {
+	data chan<- string
 	jobs []Job
 }
 
-func NewPipe(jobs ...Job) *Pipe {
+func NewPipe(data chan<- string, jobs ...Job) *Pipe {
 	p := Pipe{
+		data: data,
 		jobs: jobs,
 	}
 
@@ -42,7 +44,7 @@ func (receiver *Pipe) Start(ctx context.Context) {
 		if err != nil {
 			log.Println(err)
 		}
-		err = j.Login(jobCtx)
+		err = j.Login(jobCtx, receiver.data)
 		if err != nil {
 			log.Println(err)
 		}

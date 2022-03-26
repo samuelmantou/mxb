@@ -2,10 +2,10 @@ package cdd
 
 import (
 	"context"
+	"encoding/base64"
+	"fmt"
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
-	"io/ioutil"
-	"log"
 	"mxb/task"
 )
 
@@ -14,7 +14,7 @@ type job struct {
 	cancel context.CancelFunc
 }
 
-func (j *job) Login(ctx context.Context) error {
+func (j *job) Login(ctx context.Context, data chan<- string) error {
 	sel := `#root > div > div > div > main > div > section.login-content.undefined > div > div > div > section > div > div.scan-login.qr-code-activity > div.qr-code`
 	var buf []byte
 	err := chromedp.Run(ctx,
@@ -22,9 +22,9 @@ func (j *job) Login(ctx context.Context) error {
 		chromedp.Screenshot(sel, &buf, chromedp.NodeVisible),
 	)
 	if err == nil {
-		if err = ioutil.WriteFile("a.png", buf, 0o644); err != nil {
-			log.Println(err)
-		}
+		imageBase64 := "data:image/png;base64," + base64.StdEncoding.EncodeToString(buf)
+		res := fmt.Sprintf(`{"task":"cdd", "job":"login", "act":"qrcode", "data":"%s"}`, imageBase64)
+		data<-res
 	}
 	
 	return err

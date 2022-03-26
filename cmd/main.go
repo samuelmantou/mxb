@@ -6,6 +6,7 @@ import (
 	"mxb/router"
 	"mxb/task"
 	"mxb/task/cdd"
+	"mxb/ws"
 	"net/http"
 	"os"
 	"os/signal"
@@ -19,13 +20,15 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
+	wsPool := ws.New()
+
 	//p := task.NewPipe(cdd.New(), jd.New())
-	p := task.NewPipe(cdd.New())
+	p := task.NewPipe(wsPool.Send(), cdd.New())
 	go func(ctx context.Context) {
 		p.Start(ctx)
 	}(ctx)
 
-	console := router.NewConsole()
+	console := router.NewConsole(wsPool)
 	srv := http.Server{
 		WriteTimeout: 60 * time.Second,
 		ReadTimeout: 60 * time.Second,
