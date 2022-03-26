@@ -4,8 +4,9 @@ import (
 	"context"
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
+	"io/ioutil"
+	"log"
 	"mxb/task"
-	"time"
 )
 
 type job struct {
@@ -14,12 +15,19 @@ type job struct {
 }
 
 func (j *job) Login(ctx context.Context) error {
-	sel := `#root > div > div > div > main > div > section.login-content.undefined > div > div > div > div.login-tab > div > div.tab-item.last-item`
-	return chromedp.Run(j.ctx,
+	sel := `#root > div > div > div > main > div > section.login-content.undefined > div > div > div > section > div > div.scan-login.qr-code-activity > div.qr-code`
+	var buf []byte
+	err := chromedp.Run(ctx,
 		chromedp.WaitEnabled(sel),
-		chromedp.Sleep(time.Second * 1),
-		chromedp.Click(sel),
+		chromedp.Screenshot(sel, &buf, chromedp.NodeVisible),
 	)
+	if err == nil {
+		if err = ioutil.WriteFile("a.png", buf, 0o644); err != nil {
+			log.Println(err)
+		}
+	}
+	
+	return err
 }
 
 func (j *job) Close() {
