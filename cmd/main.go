@@ -20,7 +20,7 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	wsPool := ws.New()
+	wsPool := ws.New(ctx)
 
 	//p := task.NewPipe(cdd.New(), jd.New())
 	p := task.NewPipe(wsPool.Send(), cdd.New())
