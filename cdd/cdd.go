@@ -57,7 +57,7 @@ func (t Task) start() {
 	err = chromedp.Run(ctx,
 		chromedp.WaitEnabled(`#mms-header-next > div.mms-header-container > div > div.mms-header__list > a:nth-child(1) > div`),
 	)
-	log.Println(1)
+	log.Println("开始抓取数据")
 }
 
 func browerEvent(ev interface{}) {
