@@ -22,7 +22,6 @@ func main() {
 
 	wsPool := ws.New(ctx)
 
-	//p := task.NewPipe(cdd.New(), jd.New())
 	p := task.NewPipe(wsPool.Send(), cdd.New())
 	go func(ctx context.Context) {
 		p.Start(ctx)

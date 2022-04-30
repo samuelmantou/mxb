@@ -8,7 +8,6 @@ import (
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
 	"io/ioutil"
-	"log"
 	"mxb/task"
 	"time"
 )
@@ -25,16 +24,16 @@ func (j *job) Login(ctx context.Context, data chan<- string) error {
 		chromedp.WaitEnabled(sel),
 		chromedp.Sleep(time.Second * 3),
 		chromedp.Screenshot(sel, &buf, chromedp.NodeVisible),
-		chromedp.WaitVisible(`#mms-header-next > div.mms-header-container > div > div.mms-header__list > a:nth-child(1) > div > span`),
+		chromedp.WaitVisible(`#root > div.App_mc-content__wmMCn > div.App_mc-main-wrapper__2im7F > main > div > div.management_filter__3Mi1P > form > div > div:nth-child(5) > div.Grid_col_1nl4rhj.Grid_colNotFixed_1nl4rhj.Form_itemWrapper_1nl4rhj > div > div > button:nth-child(1) > span`),
 		chromedp.Tasks{
 			chromedp.ActionFunc(func(ctx context.Context) error {
 				cookies, err := network.GetAllCookies().Do(ctx)
 				if err != nil {
 					return err
 				}
-				for _, cookie := range cookies {
-					log.Printf("%+v\n", cookie)
-				}
+				//for _, cookie := range cookies {
+				//	log.Printf("%+v\n", cookie)
+				//}
 
 				// 2. 序列化
 				cookiesData, err := network.GetAllCookiesReturns{Cookies: cookies}.MarshalJSON()
@@ -56,7 +55,7 @@ func (j *job) Login(ctx context.Context, data chan<- string) error {
 		res := fmt.Sprintf(`{"task":"cdd", "job":"login", "act":"qrcode", "data":"%s"}`, imageBase64)
 		data<-res
 	}
-	
+
 	return err
 }
 
@@ -75,7 +74,7 @@ func (j *job) Navigate(ctx context.Context) (context.Context, error) {
 			}
 			return nil
 		}),
-		chromedp.Navigate("https://mms.pinduoduo.com"),
+		chromedp.Navigate("https://mc.pinduoduo.com/ddmc-mms/order/management"),
 	)
 	return ctx, err
 }
