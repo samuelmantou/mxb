@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
@@ -169,6 +168,7 @@ func (t *Task) reload() {
 	if err != nil {
 		log.Println("福建爬虫失败:" + err.Error())
 	}
+
 	err = chromedp.Run(ctx,
 		network.Enable(),
 		t.log("粤西爬虫开始"),
@@ -180,6 +180,22 @@ func (t *Task) reload() {
 		chromedp.Sleep(time.Second * 5),
 		chromedp.Click(`#root > div.App_mc-content__wmMCn > div.App_mc-main-wrapper__2im7F > main > div > div.management_filter__3Mi1P > form > div > div:nth-child(5) > div.Grid_col_1nl4rhj.Grid_colNotFixed_1nl4rhj.Form_itemWrapper_1nl4rhj > div > div > button:nth-child(1)`),
 		t.log("粤西爬虫结束"),
+	)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = chromedp.Run(ctx,
+		network.Enable(),
+		t.log("粤东爬虫开始"),
+		chromedp.Sleep(time.Second * 3),
+		t.log("粤东爬虫选择下拉"),
+		chromedp.Click(`#areaId > div.Grid_col_1nl4rhj.Grid_colNotFixed_1nl4rhj.Form_itemWrapper_1nl4rhj > div > div > span > span > div > div > div > div > div > div > div > div.IPT_suffixCell_1nl4rhj.IPT_prefixSuffixCell_1nl4rhj.IPT_pointerCell_1nl4rhj > div > span > i`),
+		chromedp.Click(`body > div.PT_outerWrapper_1nl4rhj.PP_outerWrapper_1nl4rhj.ST_dropdown_1nl4rhj.ST_mediumDropdown_1nl4rhj.PT_dropdown_1nl4rhj.PT_portalBottomLeft_1nl4rhj.PT_inCustom_1nl4rhj.PP_dropdown_1nl4rhj > div > div > div > div > ul > li:nth-child(3)`),
+		t.log("粤东爬虫查询"),
+		chromedp.Sleep(time.Second * 5),
+		chromedp.Click(`#root > div.App_mc-content__wmMCn > div.App_mc-main-wrapper__2im7F > main > div > div.management_filter__3Mi1P > form > div > div:nth-child(5) > div.Grid_col_1nl4rhj.Grid_colNotFixed_1nl4rhj.Form_itemWrapper_1nl4rhj > div > div > button:nth-child(1)`),
+		t.log("粤东爬虫结束"),
 	)
 	if err != nil {
 		log.Println(err)
@@ -270,44 +286,89 @@ func (t *Task) start() {
 	log.Println("初始化结束，进入爬数据阶段...")
 }
 
+var requestId network.RequestID
+
 func listenForNetworkEvent(ctx context.Context) {
 	chromedp.ListenTarget(ctx, func(ev interface{}) {
-		switch ev := ev.(type) {
+		if event, ok := ev.(*network.EventLoadingFinished); ok {
+			if requestId != "" && event.RequestID == requestId {
+				go func() {
+					var data []byte
+					if err := chromedp.Run(ctx, chromedp.ActionFunc(func(ctx context.Context) error {
+						var err error
+						data, err = network.GetResponseBody(requestId).Do(ctx)
+						if err != nil {
+							return err
+						}
+						return nil
+					})); err != nil {
+						fmt.Println("err ", err)
+					}
 
-		case *network.EventResponseReceived:
-			resp := ev.Response
-			if len(resp.Headers) != 0 {
-				if resp.URL == "https://mc.pinduoduo.com/cartman-mms/orderManagement/pageQueryDetail" {
-					log.Println(ev.RequestID)
-					go func (ev *network.EventResponseReceived) {
-						log.Println("开始导出数据")
-						c := chromedp.FromContext(ctx)
-						log.Println(ev.RequestID)
-						rbp := network.GetResponseBody(ev.RequestID)
-						log.Println(ev.RequestID)
-						body, err := rbp.Do(cdp.WithExecutor(ctx, c.Target))
-						if err != nil {
-							fmt.Println("导出数据失败1:" + err.Error())
-							return
-						}
-						var o OrderResponse
-						err = json.Unmarshal(body, &o)
-						if err != nil {
-							log.Println("导出数据失败2:" + err.Error())
-							return
-						}
-						if o.Result.Total == 0 {
-							log.Println("没有可用数据")
-							return
-						}
-						if err = ioutil.WriteFile(ev.RequestID.String(), body, 0644); err != nil {
-							log.Println("导出数据失败3:" + err.Error())
-							log.Fatal(err)
-						}
-					}(ev)
-				}
+					log.Println("开始导出数据")
+					var o OrderResponse
+					err := json.Unmarshal(data, &o)
+					if err != nil {
+						log.Println("导出数据失败2:" + err.Error())
+						return
+					}
+					if o.Result.Total == 0 {
+						log.Println("没有可用数据")
+						return
+					}
+					if err = ioutil.WriteFile(string(requestId), data, 0644); err != nil {
+						log.Println("导出数据失败3:" + err.Error())
+						log.Fatal(err)
+					}
+					log.Println("结束导出数据")
+				}()
 			}
 		}
+
+		if event, ok := ev.(*network.EventResponseReceived); ok {
+			resp := event.Response
+			if resp.URL == "https://mc.pinduoduo.com/cartman-mms/orderManagement/pageQueryDetail" {
+				requestId = event.RequestID
+			}
+		}
+
+
+		//switch ev := ev.(type) {
+		//
+		//case *network.EventResponseReceived:
+		//	resp := ev.Response
+		//	if len(resp.Headers) != 0 {
+		//		if resp.URL == "https://mc.pinduoduo.com/cartman-mms/orderManagement/pageQueryDetail" {
+		//			log.Println(ev.RequestID)
+		//			go func (ev *network.EventResponseReceived) {
+		//				log.Println("开始导出数据")
+		//				c := chromedp.FromContext(ctx)
+		//				log.Println(ev.RequestID)
+		//				rbp := network.GetResponseBody(ev.RequestID)
+		//				log.Println(ev.RequestID)
+		//				body, err := rbp.Do(cdp.WithExecutor(context.Background(), c.Target))
+		//				if err != nil {
+		//					fmt.Println("导出数据失败1:" + err.Error())
+		//					return
+		//				}
+		//				var o OrderResponse
+		//				err = json.Unmarshal(body, &o)
+		//				if err != nil {
+		//					log.Println("导出数据失败2:" + err.Error())
+		//					return
+		//				}
+		//				if o.Result.Total == 0 {
+		//					log.Println("没有可用数据")
+		//					return
+		//				}
+		//				if err = ioutil.WriteFile(ev.RequestID.String(), body, 0644); err != nil {
+		//					log.Println("导出数据失败3:" + err.Error())
+		//					log.Fatal(err)
+		//				}
+		//			}(ev)
+		//		}
+		//	}
+		//}
 		// other needed network Event
 	})
 }
