@@ -144,6 +144,47 @@ type OrderResponse struct {
 	} `json:"result"`
 }
 
+type ShouHouResponse struct {
+	Success   bool        `json:"success"`
+	ErrorCode int         `json:"errorCode"`
+	ErrorMsg  interface{} `json:"errorMsg"`
+	Result    struct {
+		Overview struct {
+			SalesTotal          int    `json:"salesTotal"`
+			QualityRefundTotal  int    `json:"qualityRefundTotal"`
+			QualityRate         string `json:"qualityRate"`
+			AfterSaleAmount     int    `json:"afterSaleAmount"`
+			PursueSubsidyAmount int    `json:"pursueSubsidyAmount"`
+			ReturnedAmount      int    `json:"returnedAmount"`
+			ExpectReturnAmount  int    `json:"expectReturnAmount"`
+		} `json:"overview"`
+		AfterSalesDataPage struct {
+			TotalCount int `json:"totalCount"`
+			Data       []struct {
+				ProductId          int64  `json:"productId"`
+				ProductName        string `json:"productName"`
+				ImgUrl             string `json:"imgUrl"`
+				ProductSpec        string `json:"productSpec"`
+				WarehouseGroupId   int    `json:"warehouseGroupId"`
+				WarehouseGroupName string `json:"warehouseGroupName"`
+				WarehouseDataList  []struct {
+					WarehouseId         int    `json:"warehouseId"`
+					WarehouseName       string `json:"warehouseName"`
+					SalesTotal          int    `json:"salesTotal"`
+					AfterSalesTotal     int    `json:"afterSalesTotal"`
+					QualityRefundTotal  int    `json:"qualityRefundTotal"`
+					AfterSalesRate      string `json:"afterSalesRate"`
+					QualityRate         string `json:"qualityRate"`
+					AfterSaleAmount     int    `json:"afterSaleAmount"`
+					PursueSubsidyAmount int    `json:"pursueSubsidyAmount"`
+					ReturnedAmount      int    `json:"returnedAmount"`
+					ExpectReturnAmount  int    `json:"expectReturnAmount"`
+				} `json:"warehouseDataList"`
+			} `json:"data"`
+		} `json:"afterSalesDataPage"`
+	} `json:"result"`
+}
+
 type Login struct {
 	Time time.Time
 	Qrcode string
@@ -155,31 +196,102 @@ type Task struct {
 }
 
 func (t *Task) reload() {
+	var err error
 	ctx := t.ctx
 
+	//err = chromedp.Run(ctx,
+	//	t.log("订单页面初始化开始"),
+	//	chromedp.Sleep(time.Second * 3),
+	//	chromedp.Navigate("https://mc.pinduoduo.com/ddmc-mms/order/management"),
+	//	chromedp.Sleep(time.Second * 3),
+	//	t.log("选择近七日"),
+	//	chromedp.Click(`#dateRange > div.Grid_col_1nl4rhj.Grid_colNotFixed_1nl4rhj.Form_itemWrapper_1nl4rhj > div > div > div > div.ST_outerWrapper_1nl4rhj.ST_medium_1nl4rhj > div > div > div > div > div > div > div.IPT_suffixCell_1nl4rhj.IPT_prefixSuffixCell_1nl4rhj.IPT_pointerCell_1nl4rhj > div > span > i`),
+	//	chromedp.Click(`body > div.PT_outerWrapper_1nl4rhj.PP_outerWrapper_1nl4rhj.ST_dropdown_1nl4rhj.ST_mediumDropdown_1nl4rhj.PT_dropdown_1nl4rhj.PT_portalBottomLeft_1nl4rhj.PT_inCustom_1nl4rhj.PP_dropdown_1nl4rhj > div > div > div > div > ul > li:nth-child(5)`),
+	//	t.log("订单页面初始化结束"),
+	//)
+	//
+	//err = chromedp.Run(ctx,
+	//	t.log("选择每页显示数量开始"),
+	//	chromedp.Sleep(time.Second * 2),
+	//	chromedp.Click(`#root > div.App_mc-content__wmMCn > div.App_mc-main-wrapper__2im7F > main > div > div:nth-child(5) > div > div.TB_bottom_1nl4rhj > div > ul > li.PGT_sizeChanger_1nl4rhj > div > div > div > div > div > div > div > div.IPT_suffixCell_1nl4rhj.IPT_prefixSuffixCell_1nl4rhj.IPT_pointerCell_1nl4rhj > div > span > i`),
+	//	t.log("选择每页显示数量_1"),
+	//	chromedp.Sleep(time.Second * 2),
+	//	t.log("选择每页显示数量_2"),
+	//	chromedp.Sleep(time.Second * 2),
+	//	chromedp.Click(`body > div.PT_outerWrapper_1nl4rhj.PP_outerWrapper_1nl4rhj.ST_dropdown_1nl4rhj.ST_mediumDropdown_1nl4rhj.PT_dropdown_1nl4rhj.PT_portalBottomLeft_1nl4rhj.PT_inCustom_1nl4rhj.PP_dropdown_1nl4rhj > div > div > div > div > ul > li:nth-child(4)`),
+	//	t.log("选择每页显示数量结束"),
+	//)
+	t.ctx = ctx
+	log.Println("初始化结束，进入爬数据阶段...")
+
 	listenForNetworkEvent(ctx)
-	err := chromedp.Run(ctx,
-		network.Enable(),
-		t.log("福建爬虫开始"),
+	//err = chromedp.Run(ctx,
+	//	network.Enable(),
+	//	t.log("福建爬虫开始"),
+	//	chromedp.Sleep(time.Second * 3),
+	//	chromedp.Click(`#root > div.App_mc-content__wmMCn > div.App_mc-main-wrapper__2im7F > main > div > div.management_filter__3Mi1P > form > div > div:nth-child(5) > div.Grid_col_1nl4rhj.Grid_colNotFixed_1nl4rhj.Form_itemWrapper_1nl4rhj > div > div > button:nth-child(1)`),
+	//	t.log("福建爬虫结束"),
+	//)
+	//if err != nil {
+	//	log.Println("福建爬虫失败:" + err.Error())
+	//}
+	//
+	//err = chromedp.Run(ctx,
+	//	network.Enable(),
+	//	t.log("粤西爬虫开始"),
+	//	chromedp.Sleep(time.Second * 3),
+	//	t.log("粤西爬虫选择下拉"),
+	//	chromedp.Click(`#areaId > div.Grid_col_1nl4rhj.Grid_colNotFixed_1nl4rhj.Form_itemWrapper_1nl4rhj > div > div > span > span > div > div > div > div > div > div > div > div.IPT_suffixCell_1nl4rhj.IPT_prefixSuffixCell_1nl4rhj.IPT_pointerCell_1nl4rhj > div > span > i`),
+	//	chromedp.Click(`body > div.PT_outerWrapper_1nl4rhj.PP_outerWrapper_1nl4rhj.ST_dropdown_1nl4rhj.ST_mediumDropdown_1nl4rhj.PT_dropdown_1nl4rhj.PT_portalBottomLeft_1nl4rhj.PT_inCustom_1nl4rhj.PP_dropdown_1nl4rhj > div > div > div > div > ul > li:nth-child(2)`),
+	//	t.log("粤西爬虫查询"),
+	//	chromedp.Sleep(time.Second * 5),
+	//	chromedp.Click(`#root > div.App_mc-content__wmMCn > div.App_mc-main-wrapper__2im7F > main > div > div.management_filter__3Mi1P > form > div > div:nth-child(5) > div.Grid_col_1nl4rhj.Grid_colNotFixed_1nl4rhj.Form_itemWrapper_1nl4rhj > div > div > button:nth-child(1)`),
+	//	t.log("粤西爬虫结束"),
+	//)
+	//if err != nil {
+	//	log.Println(err)
+	//}
+	//
+	//err = chromedp.Run(ctx,
+	//	network.Enable(),
+	//	t.log("粤东爬虫开始"),
+	//	chromedp.Sleep(time.Second * 3),
+	//	t.log("粤东爬虫选择下拉"),
+	//	chromedp.Click(`#areaId > div.Grid_col_1nl4rhj.Grid_colNotFixed_1nl4rhj.Form_itemWrapper_1nl4rhj > div > div > span > span > div > div > div > div > div > div > div > div.IPT_suffixCell_1nl4rhj.IPT_prefixSuffixCell_1nl4rhj.IPT_pointerCell_1nl4rhj > div > span > i`),
+	//	chromedp.Click(`body > div.PT_outerWrapper_1nl4rhj.PP_outerWrapper_1nl4rhj.ST_dropdown_1nl4rhj.ST_mediumDropdown_1nl4rhj.PT_dropdown_1nl4rhj.PT_portalBottomLeft_1nl4rhj.PT_inCustom_1nl4rhj.PP_dropdown_1nl4rhj > div > div > div > div > ul > li:nth-child(3)`),
+	//	t.log("粤东爬虫查询"),
+	//	chromedp.Sleep(time.Second * 5),
+	//	chromedp.Click(`#root > div.App_mc-content__wmMCn > div.App_mc-main-wrapper__2im7F > main > div > div.management_filter__3Mi1P > form > div > div:nth-child(5) > div.Grid_col_1nl4rhj.Grid_colNotFixed_1nl4rhj.Form_itemWrapper_1nl4rhj > div > div > button:nth-child(1)`),
+	//	t.log("粤东爬虫结束"),
+	//)
+	//if err != nil {
+	//	log.Println(err)
+	//}
+
+	err = chromedp.Run(ctx,
+		t.log("售后页面初始化开始"),
 		chromedp.Sleep(time.Second * 3),
-		chromedp.Click(`#root > div.App_mc-content__wmMCn > div.App_mc-main-wrapper__2im7F > main > div > div.management_filter__3Mi1P > form > div > div:nth-child(5) > div.Grid_col_1nl4rhj.Grid_colNotFixed_1nl4rhj.Form_itemWrapper_1nl4rhj > div > div > button:nth-child(1)`),
-		t.log("福建爬虫结束"),
+		chromedp.Navigate("https://mc.pinduoduo.com/ddmc-mms/after-sales-manage"),
+		chromedp.Sleep(time.Second * 3),
+		t.log("选择每页30条"),
+		chromedp.Click(`#root > div.App_mc-content__wmMCn > div.App_mc-main-wrapper__2im7F > main > div > div > div.TB_outerWrapper_1nl4rhj.TB_bordered_1nl4rhj.TB_notTreeStriped_1nl4rhj > div.TB_bottom_1nl4rhj > div.TB_bottomRight_1nl4rhj > ul > li.PGT_sizeChanger_1nl4rhj.PGT_alone_1nl4rhj > div > div > div > div > div > div`),
+		chromedp.Sleep(time.Second * 3),
+		chromedp.Click(`body > div.PT_outerWrapper_1nl4rhj.PP_outerWrapper_1nl4rhj.ST_dropdown_1nl4rhj.ST_mediumDropdown_1nl4rhj.PT_dropdown_1nl4rhj.PT_portalBottomLeft_1nl4rhj.PT_inCustom_1nl4rhj.PP_dropdown_1nl4rhj > div > div > div > div > ul > li:nth-child(3)`),
+		t.log("售后页面初始化结束"),
 	)
-	if err != nil {
-		log.Println("福建爬虫失败:" + err.Error())
-	}
 
 	err = chromedp.Run(ctx,
 		network.Enable(),
-		t.log("粤西爬虫开始"),
+		t.log("售后福建省开始"),
 		chromedp.Sleep(time.Second * 3),
-		t.log("粤西爬虫选择下拉"),
-		chromedp.Click(`#areaId > div.Grid_col_1nl4rhj.Grid_colNotFixed_1nl4rhj.Form_itemWrapper_1nl4rhj > div > div > span > span > div > div > div > div > div > div > div > div.IPT_suffixCell_1nl4rhj.IPT_prefixSuffixCell_1nl4rhj.IPT_pointerCell_1nl4rhj > div > span > i`),
-		chromedp.Click(`body > div.PT_outerWrapper_1nl4rhj.PP_outerWrapper_1nl4rhj.ST_dropdown_1nl4rhj.ST_mediumDropdown_1nl4rhj.PT_dropdown_1nl4rhj.PT_portalBottomLeft_1nl4rhj.PT_inCustom_1nl4rhj.PP_dropdown_1nl4rhj > div > div > div > div > ul > li:nth-child(2)`),
-		t.log("粤西爬虫查询"),
-		chromedp.Sleep(time.Second * 5),
-		chromedp.Click(`#root > div.App_mc-content__wmMCn > div.App_mc-main-wrapper__2im7F > main > div > div.management_filter__3Mi1P > form > div > div:nth-child(5) > div.Grid_col_1nl4rhj.Grid_colNotFixed_1nl4rhj.Form_itemWrapper_1nl4rhj > div > div > button:nth-child(1)`),
-		t.log("粤西爬虫结束"),
+		t.log("福建省爬虫选择下拉"),
+		chromedp.Click(`#root > div.App_mc-content__wmMCn > div.App_mc-main-wrapper__2im7F > main > div > div > form > div > div:nth-child(1) > div.ST_outerWrapper_1nl4rhj.ST_medium_1nl4rhj > div > div > div > div > div > div > div.IPT_inputBlockCell_1nl4rhj.ST_inputBlockCell_1nl4rhj`),
+		chromedp.Sleep(time.Second),
+		chromedp.Click(`body > div.PT_outerWrapper_1nl4rhj.PP_outerWrapper_1nl4rhj.ST_dropdown_1nl4rhj.ST_mediumDropdown_1nl4rhj.PT_dropdown_1nl4rhj.PT_portalBottomLeft_1nl4rhj.PT_inCustom_1nl4rhj.PP_dropdown_1nl4rhj > div > div > div > div > ul > li:nth-child(1)`),
+		t.log("福建省爬虫查询"),
+		chromedp.Sleep(time.Second * 3),
+		chromedp.Click(`#root > div.App_mc-content__wmMCn > div.App_mc-main-wrapper__2im7F > main > div > div > form > div > button`),
+		t.log("售后福建省结束"),
 	)
 	if err != nil {
 		log.Println(err)
@@ -187,15 +299,33 @@ func (t *Task) reload() {
 
 	err = chromedp.Run(ctx,
 		network.Enable(),
-		t.log("粤东爬虫开始"),
+		t.log("售后粤西开始"),
+		chromedp.Sleep(time.Second * 3),
+		t.log("粤西爬虫选择下拉"),
+		chromedp.Click(`#root > div.App_mc-content__wmMCn > div.App_mc-main-wrapper__2im7F > main > div > div > form > div > div:nth-child(1) > div.ST_outerWrapper_1nl4rhj.ST_medium_1nl4rhj > div > div > div > div > div > div > div.IPT_inputBlockCell_1nl4rhj.ST_inputBlockCell_1nl4rhj`),
+		chromedp.Sleep(time.Second),
+		chromedp.Click(`body > div.PT_outerWrapper_1nl4rhj.PP_outerWrapper_1nl4rhj.ST_dropdown_1nl4rhj.ST_mediumDropdown_1nl4rhj.PT_dropdown_1nl4rhj.PT_portalBottomLeft_1nl4rhj.PT_inCustom_1nl4rhj.PP_dropdown_1nl4rhj > div > div > div > div > ul > li:nth-child(2)`),
+		t.log("粤西爬虫查询"),
+		chromedp.Sleep(time.Second * 3),
+		chromedp.Click(`#root > div.App_mc-content__wmMCn > div.App_mc-main-wrapper__2im7F > main > div > div > form > div > button`),
+		t.log("售后粤西结束"),
+	)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = chromedp.Run(ctx,
+		network.Enable(),
+		t.log("售后粤东开始"),
 		chromedp.Sleep(time.Second * 3),
 		t.log("粤东爬虫选择下拉"),
-		chromedp.Click(`#areaId > div.Grid_col_1nl4rhj.Grid_colNotFixed_1nl4rhj.Form_itemWrapper_1nl4rhj > div > div > span > span > div > div > div > div > div > div > div > div.IPT_suffixCell_1nl4rhj.IPT_prefixSuffixCell_1nl4rhj.IPT_pointerCell_1nl4rhj > div > span > i`),
+		chromedp.Click(`#root > div.App_mc-content__wmMCn > div.App_mc-main-wrapper__2im7F > main > div > div > form > div > div:nth-child(1) > div.ST_outerWrapper_1nl4rhj.ST_medium_1nl4rhj > div > div > div > div > div > div > div.IPT_inputBlockCell_1nl4rhj.ST_inputBlockCell_1nl4rhj`),
+		chromedp.Sleep(time.Second),
 		chromedp.Click(`body > div.PT_outerWrapper_1nl4rhj.PP_outerWrapper_1nl4rhj.ST_dropdown_1nl4rhj.ST_mediumDropdown_1nl4rhj.PT_dropdown_1nl4rhj.PT_portalBottomLeft_1nl4rhj.PT_inCustom_1nl4rhj.PP_dropdown_1nl4rhj > div > div > div > div > ul > li:nth-child(3)`),
 		t.log("粤东爬虫查询"),
-		chromedp.Sleep(time.Second * 5),
-		chromedp.Click(`#root > div.App_mc-content__wmMCn > div.App_mc-main-wrapper__2im7F > main > div > div.management_filter__3Mi1P > form > div > div:nth-child(5) > div.Grid_col_1nl4rhj.Grid_colNotFixed_1nl4rhj.Form_itemWrapper_1nl4rhj > div > div > button:nth-child(1)`),
-		t.log("粤东爬虫结束"),
+		chromedp.Sleep(time.Second * 3),
+		chromedp.Click(`#root > div.App_mc-content__wmMCn > div.App_mc-main-wrapper__2im7F > main > div > div > form > div > button`),
+		t.log("粤东粤西结束"),
 	)
 	if err != nil {
 		log.Println(err)
@@ -257,36 +387,18 @@ func (t *Task) start() {
 		}()
 	}
 
-	buf = []byte{}
 	err = chromedp.Run(ctx,
-		t.log("订单页面开始"),
 		chromedp.WaitEnabled(`#mms-header-next > div.mms-header-container > div > div.mms-header__list > a:nth-child(1) > div`),
-		chromedp.Sleep(time.Second * 3),
-		chromedp.Navigate("https://mc.pinduoduo.com/ddmc-mms/order/management"),
-		chromedp.Sleep(time.Second * 3),
-		t.log("选择近七日"),
-		chromedp.Click(`#dateRange > div.Grid_col_1nl4rhj.Grid_colNotFixed_1nl4rhj.Form_itemWrapper_1nl4rhj > div > div > div > div.ST_outerWrapper_1nl4rhj.ST_medium_1nl4rhj > div > div > div > div > div > div > div.IPT_suffixCell_1nl4rhj.IPT_prefixSuffixCell_1nl4rhj.IPT_pointerCell_1nl4rhj > div > span > i`),
-		chromedp.Click(`body > div.PT_outerWrapper_1nl4rhj.PP_outerWrapper_1nl4rhj.ST_dropdown_1nl4rhj.ST_mediumDropdown_1nl4rhj.PT_dropdown_1nl4rhj.PT_portalBottomLeft_1nl4rhj.PT_inCustom_1nl4rhj.PP_dropdown_1nl4rhj > div > div > div > div > ul > li:nth-child(5)`),
-		chromedp.CaptureScreenshot(&buf),
-		t.screenshotSave(&buf),
-		t.log("订单页面结束"),
 	)
+	if err != nil {
+		log.Println("进入首页失败:" + err.Error())
+	}
 
-	err = chromedp.Run(ctx,
-		t.log("选择每页显示数量开始"),
-		chromedp.Sleep(time.Second * 2),
-		chromedp.Click(`#root > div.App_mc-content__wmMCn > div.App_mc-main-wrapper__2im7F > main > div > div:nth-child(5) > div > div.TB_bottom_1nl4rhj > div > ul > li.PGT_sizeChanger_1nl4rhj > div > div > div > div > div > div > div > div.IPT_suffixCell_1nl4rhj.IPT_prefixSuffixCell_1nl4rhj.IPT_pointerCell_1nl4rhj > div > span > i`),
-		chromedp.Sleep(time.Second),
-		chromedp.Click(`body > div.PT_outerWrapper_1nl4rhj.PP_outerWrapper_1nl4rhj.ST_dropdown_1nl4rhj.ST_mediumDropdown_1nl4rhj.PT_dropdown_1nl4rhj.PT_portalBottomLeft_1nl4rhj.PT_inCustom_1nl4rhj.PP_dropdown_1nl4rhj > div > div > div > div > ul > li:nth-child(4)`),
-		t.log("选择每页显示数量结束"),
-		chromedp.CaptureScreenshot(&buf),
-		t.screenshotSave(&buf),
-	)
 	t.ctx = ctx
-	log.Println("初始化结束，进入爬数据阶段...")
 }
 
 var requestId network.RequestID
+var urlType string
 
 func listenForNetworkEvent(ctx context.Context) {
 	chromedp.ListenTarget(ctx, func(ev interface{}) {
@@ -294,7 +406,8 @@ func listenForNetworkEvent(ctx context.Context) {
 			if requestId != "" && event.RequestID == requestId {
 				go func() {
 					var data []byte
-					if err := chromedp.Run(ctx, chromedp.ActionFunc(func(ctx context.Context) error {
+					var err error
+					if err = chromedp.Run(ctx, chromedp.ActionFunc(func(ctx context.Context) error {
 						var err error
 						data, err = network.GetResponseBody(requestId).Do(ctx)
 						if err != nil {
@@ -306,16 +419,30 @@ func listenForNetworkEvent(ctx context.Context) {
 					}
 
 					log.Println("开始导出数据")
-					var o OrderResponse
-					err := json.Unmarshal(data, &o)
-					if err != nil {
-						log.Println("导出数据失败2:" + err.Error())
-						return
+					if urlType == "order" {
+						var o OrderResponse
+						err = json.Unmarshal(data, &o)
+						if err != nil {
+							log.Println("导出数据失败2:" + err.Error())
+							return
+						}
+						if o.Result.Total == 0 {
+							log.Println("没有可用数据")
+							return
+						}
+					}else {
+						var o ShouHouResponse
+						err = json.Unmarshal(data, &o)
+						if err != nil {
+							log.Println("导出数据失败2:" + err.Error())
+							return
+						}
+						if o.Result.AfterSalesDataPage.TotalCount == 0 {
+							log.Println("没有可用数据")
+							return
+						}
 					}
-					if o.Result.Total == 0 {
-						log.Println("没有可用数据")
-						return
-					}
+
 					if err = ioutil.WriteFile(string(requestId), data, 0644); err != nil {
 						log.Println("导出数据失败3:" + err.Error())
 						log.Fatal(err)
@@ -329,47 +456,13 @@ func listenForNetworkEvent(ctx context.Context) {
 			resp := event.Response
 			if resp.URL == "https://mc.pinduoduo.com/cartman-mms/orderManagement/pageQueryDetail" {
 				requestId = event.RequestID
+				urlType = "order"
+			}
+			if resp.URL == "https://mc.pinduoduo.com/ragnaros-mms/after/sales/manage/queryProductAfterSalesStatistic" {
+				requestId = event.RequestID
+				urlType = "shouhou"
 			}
 		}
-
-
-		//switch ev := ev.(type) {
-		//
-		//case *network.EventResponseReceived:
-		//	resp := ev.Response
-		//	if len(resp.Headers) != 0 {
-		//		if resp.URL == "https://mc.pinduoduo.com/cartman-mms/orderManagement/pageQueryDetail" {
-		//			log.Println(ev.RequestID)
-		//			go func (ev *network.EventResponseReceived) {
-		//				log.Println("开始导出数据")
-		//				c := chromedp.FromContext(ctx)
-		//				log.Println(ev.RequestID)
-		//				rbp := network.GetResponseBody(ev.RequestID)
-		//				log.Println(ev.RequestID)
-		//				body, err := rbp.Do(cdp.WithExecutor(context.Background(), c.Target))
-		//				if err != nil {
-		//					fmt.Println("导出数据失败1:" + err.Error())
-		//					return
-		//				}
-		//				var o OrderResponse
-		//				err = json.Unmarshal(body, &o)
-		//				if err != nil {
-		//					log.Println("导出数据失败2:" + err.Error())
-		//					return
-		//				}
-		//				if o.Result.Total == 0 {
-		//					log.Println("没有可用数据")
-		//					return
-		//				}
-		//				if err = ioutil.WriteFile(ev.RequestID.String(), body, 0644); err != nil {
-		//					log.Println("导出数据失败3:" + err.Error())
-		//					log.Fatal(err)
-		//				}
-		//			}(ev)
-		//		}
-		//	}
-		//}
-		// other needed network Event
 	})
 }
 
@@ -381,6 +474,7 @@ func New(loginC chan *Login, headless bool) *Task {
 	ctx := context.Background()
 	options := []chromedp.ExecAllocatorOption{
 		chromedp.Flag("headless", headless),
+		chromedp.WindowSize(1920, 1080),
 		chromedp.DisableGPU,
 		chromedp.Flag(`disable-extensions`, false),
 		chromedp.Flag(`enable-automation`, false),
