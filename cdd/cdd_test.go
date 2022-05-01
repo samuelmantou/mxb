@@ -18,7 +18,7 @@ func TestName(t *testing.T) {
 	task.Run()
 	time.Sleep(time.Second * 5)
 	task.reload()
-	//time.Sleep(time.Second * 20)
-	//task.reload()
+	time.Sleep(time.Second * 30)
+	task.reload()
 	<-make(chan struct{})
 }
