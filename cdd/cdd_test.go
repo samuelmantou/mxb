@@ -3,6 +3,7 @@ package cdd
 import (
 	"log"
 	"testing"
+	"time"
 )
 
 func TestName(t *testing.T) {
@@ -13,8 +14,9 @@ func TestName(t *testing.T) {
 			log.Println(d.Qrcode)
 		}
 	}()
-	task := New(loginC)
+	task := New(loginC, false)
 	task.Run()
-
+	time.Sleep(time.Second * 5)
+	task.reload()
 	<-make(chan struct{})
 }
