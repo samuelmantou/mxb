@@ -197,7 +197,7 @@ type Task struct {
 	loginC chan *Login
 }
 
-func (t *Task) reload() {
+func (t *Task) Reload() {
 	var err error
 	ctx := t.ctx
 
@@ -490,7 +490,7 @@ func listenForNetworkEvent(ctx context.Context) {
 						}
 					}
 
-					http.PostForm("http://api.mxb.tech/index/transfer?use=ajax", url.Values{
+					http.PostForm("http://api.mxb.j1mi.com/index/transfer?use=ajax", url.Values{
 						"data": {string(data)},
 						"from": {urlType},
 					})

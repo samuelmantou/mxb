@@ -1,50 +1,25 @@
 package main
 
 import (
-	"context"
 	"log"
-	"mxb/router"
-	"mxb/task"
-	"mxb/task/cdd"
-	"mxb/ws"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
+	cdd2 "mxb/cdd"
 	"time"
 )
 
 func main() {
-	sig := make(chan os.Signal)
-	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
-
-	ctx, cancel := context.WithCancel(context.Background())
-
-	wsPool := ws.New(ctx)
-
-	p := task.NewPipe(wsPool.Send(), cdd.New())
-	go func(ctx context.Context) {
-		p.Start(ctx)
-	}(ctx)
-
-	console := router.NewConsole(wsPool)
-	srv := http.Server{
-		WriteTimeout: 60 * time.Second,
-		ReadTimeout: 60 * time.Second,
-		Addr: ":9999",
-		Handler: console.Handler(),
-	}
+	loginC := make(chan *cdd2.Login)
 	go func() {
-		if err := srv.ListenAndServe(); err != nil {
-			log.Println(err)
+		for {
+			d := <-loginC
+			log.Println(d.Qrcode)
 		}
 	}()
-
-	select {
-	case <-sig:
-	case <-console.Done():
+	task := cdd2.New(loginC, false)
+	task.Run()
+	task.Reload()
+	for {
+		time.Sleep(time.Hour * 5)
+		task.Reload()
 	}
-	srv.Shutdown(context.Background())
-	cancel()
-	time.Sleep(time.Second)
+	<-make(chan struct{})
 }
