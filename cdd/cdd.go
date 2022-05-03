@@ -205,7 +205,18 @@ func (t *Task) reload() {
 		t.log("订单页面初始化开始"),
 		chromedp.Sleep(time.Second * 3),
 		chromedp.Navigate("https://mc.pinduoduo.com/ddmc-mms/order/management"),
-		chromedp.Sleep(time.Second * 3),
+		chromedp.Sleep(time.Second * 5),
+		chromedp.Navigate("https://mc.pinduoduo.com/ddmc-mms/order/management"),
+		chromedp.Sleep(time.Second * 5),
+		//移除浮窗
+		chromedp.EvaluateAsDevTools("var elemttt = document.getElementById('new_feedback_box_drag_area');elemttt.parentNode.removeChild(elemttt); elemttt = document.getElementById('new_message_box_drag_area');elemttt.parentNode.removeChild(elemttt);", nil),
+	)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = chromedp.Run(ctx,
+		chromedp.Sleep(time.Second * 5),
 		t.log("选择近七日"),
 		chromedp.Click(`#dateRange > div.Grid_col_1nl4rhj.Grid_colNotFixed_1nl4rhj.Form_itemWrapper_1nl4rhj > div > div > div > div.ST_outerWrapper_1nl4rhj.ST_medium_1nl4rhj > div > div > div > div > div > div > div.IPT_suffixCell_1nl4rhj.IPT_prefixSuffixCell_1nl4rhj.IPT_pointerCell_1nl4rhj > div > span > i`),
 		chromedp.Click(`body > div.PT_outerWrapper_1nl4rhj.PP_outerWrapper_1nl4rhj.ST_dropdown_1nl4rhj.ST_mediumDropdown_1nl4rhj.PT_dropdown_1nl4rhj.PT_portalBottomLeft_1nl4rhj.PT_inCustom_1nl4rhj.PP_dropdown_1nl4rhj > div > div > div > div > ul > li:nth-child(5)`),
@@ -216,11 +227,9 @@ func (t *Task) reload() {
 		t.log("选择每页显示数量开始"),
 		chromedp.Sleep(time.Second * 2),
 		chromedp.Click(`#root > div.App_mc-content__wmMCn > div.App_mc-main-wrapper__2im7F > main > div > div:nth-child(5) > div > div.TB_bottom_1nl4rhj > div > ul > li.PGT_sizeChanger_1nl4rhj > div > div > div > div > div > div > div > div.IPT_suffixCell_1nl4rhj.IPT_prefixSuffixCell_1nl4rhj.IPT_pointerCell_1nl4rhj > div > span > i`),
-		t.log("选择每页显示数量_1"),
+		t.log("选择每页显示数量"),
 		chromedp.Sleep(time.Second * 2),
-		t.log("选择每页显示数量_2"),
-		chromedp.Sleep(time.Second * 2),
-		chromedp.Click(`body > div.PT_outerWrapper_1nl4rhj.PP_outerWrapper_1nl4rhj.ST_dropdown_1nl4rhj.ST_mediumDropdown_1nl4rhj.PT_dropdown_1nl4rhj.PT_portalBottomLeft_1nl4rhj.PT_inCustom_1nl4rhj.PP_dropdown_1nl4rhj > div > div > div > div > ul > li:nth-child(4)`),
+		chromedp.Click(`body > div.PT_outerWrapper_1nl4rhj.PP_outerWrapper_1nl4rhj.ST_dropdown_1nl4rhj.ST_mediumDropdown_1nl4rhj.PT_dropdown_1nl4rhj.PT_portalTopLeft_1nl4rhj.PT_inCustom_1nl4rhj.PP_dropdown_1nl4rhj > div > div > div > div > ul > li:nth-child(4)`),
 		t.log("选择每页显示数量结束"),
 	)
 
@@ -275,10 +284,16 @@ func (t *Task) reload() {
 		chromedp.Sleep(time.Second * 3),
 		chromedp.Navigate("https://mc.pinduoduo.com/ddmc-mms/after-sales-manage"),
 		chromedp.Sleep(time.Second * 3),
+		//移除浮窗
+		chromedp.EvaluateAsDevTools("var elemttt = document.getElementById('new_feedback_box_drag_area');elemttt.parentNode.removeChild(elemttt); elemttt = document.getElementById('new_message_box_drag_area');elemttt.parentNode.removeChild(elemttt);", nil),
+	)
+
+	err = chromedp.Run(ctx,
+		chromedp.Sleep(time.Second * 3),
 		t.log("选择每页30条"),
 		chromedp.Click(`#root > div.App_mc-content__wmMCn > div.App_mc-main-wrapper__2im7F > main > div > div > div.TB_outerWrapper_1nl4rhj.TB_bordered_1nl4rhj.TB_notTreeStriped_1nl4rhj > div.TB_bottom_1nl4rhj > div.TB_bottomRight_1nl4rhj > ul > li.PGT_sizeChanger_1nl4rhj.PGT_alone_1nl4rhj > div > div > div > div > div > div`),
 		chromedp.Sleep(time.Second * 3),
-		chromedp.Click(`body > div.PT_outerWrapper_1nl4rhj.PP_outerWrapper_1nl4rhj.ST_dropdown_1nl4rhj.ST_mediumDropdown_1nl4rhj.PT_dropdown_1nl4rhj.PT_portalBottomLeft_1nl4rhj.PT_inCustom_1nl4rhj.PP_dropdown_1nl4rhj > div > div > div > div > ul > li:nth-child(3)`),
+		chromedp.Click(`body > div.PT_outerWrapper_1nl4rhj.PP_outerWrapper_1nl4rhj.ST_dropdown_1nl4rhj.ST_mediumDropdown_1nl4rhj.PT_dropdown_1nl4rhj.PT_portalTopLeft_1nl4rhj.PT_inCustom_1nl4rhj.PP_dropdown_1nl4rhj > div > div > div > div > ul > li:nth-child(3)`),
 		t.log("售后页面初始化结束"),
 	)
 
@@ -510,7 +525,7 @@ func New(loginC chan *Login, headless bool) *Task {
 	ctx := context.Background()
 	options := []chromedp.ExecAllocatorOption{
 		chromedp.Flag("headless", headless),
-		chromedp.WindowSize(1920, 1080),
+		chromedp.WindowSize(1280, 696),
 		chromedp.DisableGPU,
 		chromedp.Flag(`disable-extensions`, false),
 		chromedp.Flag(`enable-automation`, false),
