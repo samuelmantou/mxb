@@ -370,6 +370,11 @@ func (t *Task) Reload() {
 		chromedp.Sleep(time.Second * 3),
 		chromedp.Navigate("https://mc.pinduoduo.com/ddmc-mms/order/management"),
 		chromedp.Sleep(time.Second * 3),
+		//移除浮窗
+		chromedp.EvaluateAsDevTools("var elemttt = document.getElementById('new_feedback_box_drag_area');elemttt.parentNode.removeChild(elemttt); elemttt = document.getElementById('new_message_box_drag_area');elemttt.parentNode.removeChild(elemttt);", nil),
+	)
+
+	err = chromedp.Run(ctx,
 		t.log("选择福建省"),
 		chromedp.Click(`#areaId > div.Grid_col_1nl4rhj.Grid_colNotFixed_1nl4rhj.Form_itemWrapper_1nl4rhj > div > div > span > span > div > div > div > div > div > div > div > div.IPT_inputBlockCell_1nl4rhj.ST_inputBlockCell_1nl4rhj`),
 		chromedp.Click(`body > div.PT_outerWrapper_1nl4rhj.PP_outerWrapper_1nl4rhj.ST_dropdown_1nl4rhj.ST_mediumDropdown_1nl4rhj.PT_dropdown_1nl4rhj.PT_portalBottomLeft_1nl4rhj.PT_inCustom_1nl4rhj.PP_dropdown_1nl4rhj > div > div > div > div > ul > li:nth-child(1)`),
@@ -525,7 +530,7 @@ func New(loginC chan *Login, headless bool) *Task {
 	ctx := context.Background()
 	options := []chromedp.ExecAllocatorOption{
 		chromedp.Flag("headless", headless),
-		chromedp.WindowSize(1280, 696),
+		chromedp.WindowSize(1000, 530),
 		chromedp.DisableGPU,
 		chromedp.Flag(`disable-extensions`, false),
 		chromedp.Flag(`enable-automation`, false),
