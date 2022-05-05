@@ -519,6 +519,13 @@ func listenForNetworkEvent(ctx context.Context) {
 				urlType = "shouhou"
 			}
 		}
+
+		if event, ok := ev.(*network.EventRequestWillBeSent); ok {
+			req := event.Request
+			if req.URL == "https://mc.pinduoduo.com/ragnaros-mms/after/sales/manage/queryProductAfterSalesStatistic" {
+				log.Println("aaaa")
+			}
+		}
 	})
 }
 
@@ -530,7 +537,7 @@ func New(loginC chan *Login, headless bool) *Task {
 	ctx := context.Background()
 	options := []chromedp.ExecAllocatorOption{
 		chromedp.Flag("headless", headless),
-		chromedp.WindowSize(1000, 530),
+		chromedp.WindowSize(1020, 560),
 		chromedp.DisableGPU,
 		chromedp.Flag(`disable-extensions`, false),
 		chromedp.Flag(`enable-automation`, false),
