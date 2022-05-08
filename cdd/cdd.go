@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -59,8 +60,6 @@ func listenForNetworkEvent(ctx context.Context) {
 					s := e - 86400000 * 7
 					o.StartSessionTime = s
 					o.EndSessionTime = e
-					log.Printf("%v", req.PostData)
-					log.Printf("%v", o)
 					b, _ = json.Marshal(o)
 
 					postReq, err := http.NewRequest(http.MethodPost, req.URL, bytes.NewBuffer(b))
@@ -77,10 +76,13 @@ func listenForNetworkEvent(ctx context.Context) {
 					resp, err := c.Do(postReq)
 					defer resp.Body.Close()
 
-					//body, _ := ioutil.ReadAll(resp.Body)
-					//log.Println(string(body))
+					body, _ := ioutil.ReadAll(resp.Body)
 
-					http.NewRequest(http.MethodPost, "http://api.mxb.tech/index/transfer?use=ajax", bytes.NewBuffer(b))
+					http.PostForm("http://api.mxb.tech/index/transfer?use=ajax", url.Values{
+						"data": {string(body)},
+						"from": {"order"},
+						"date": {""},
+					})
 				}(*req)
 			}
 			if req.URL == "https://mc.pinduoduo.com/ragnaros-mms/after/sales/manage/queryProductAfterSalesStatistic" {
@@ -116,7 +118,12 @@ func listenForNetworkEvent(ctx context.Context) {
 						defer resp.Body.Close()
 
 						body, _ := ioutil.ReadAll(resp.Body)
-						log.Println(string(body))
+
+						http.PostForm("http://api.mxb.tech/index/transfer?use=ajax", url.Values{
+							"data": {string(body)},
+							"from": {"shouhou"},
+							"date": {d},
+						})
 					}
 				}(*req)
 			}
