@@ -16,7 +16,7 @@ func main() {
 	task.Run()
 	task.Reload()
 	for {
-		time.Sleep(time.Minute * 2)
+		time.Sleep(time.Hour * 5)
 		task.Reload()
 	}
 	<-make(chan struct{})

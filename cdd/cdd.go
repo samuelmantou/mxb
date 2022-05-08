@@ -78,7 +78,7 @@ func listenForNetworkEvent(ctx context.Context) {
 
 					body, _ := ioutil.ReadAll(resp.Body)
 
-					http.PostForm("http://api.mxb.tech/index/transfer?use=ajax", url.Values{
+					http.PostForm("http://api.mxb.j1mi.com/index/transfer?use=ajax", url.Values{
 						"data": {string(body)},
 						"from": {"order"},
 						"date": {""},
