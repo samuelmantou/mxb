@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	cdd2 "mxb/cdd"
 	"time"
 )
@@ -10,8 +9,7 @@ func main() {
 	loginC := make(chan *cdd2.Login)
 	go func() {
 		for {
-			d := <-loginC
-			log.Println(d.Qrcode)
+			<-loginC
 		}
 	}()
 	task := cdd2.New(loginC, false)

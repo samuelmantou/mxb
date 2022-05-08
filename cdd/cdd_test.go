@@ -7,18 +7,9 @@ import (
 )
 
 func TestName(t *testing.T) {
-	loginC := make(chan *Login)
-	go func() {
-		for {
-			d := <-loginC
-			log.Println(d.Qrcode)
-		}
-	}()
-	task := New(loginC, false)
-	task.Run()
-	time.Sleep(time.Second * 5)
-	task.reload()
-	time.Sleep(time.Second * 30)
-	task.reload()
-	<-make(chan struct{})
+	for i := -4; i > -7; i-- {
+		n := time.Now().AddDate(0,0, i)
+		d := n.Format("2006-01-02")
+		log.Println(d)
+	}
 }
