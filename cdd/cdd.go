@@ -51,56 +51,17 @@ func listenForNetworkEvent(ctx context.Context) {
 					time.Sleep(time.Second * 5)
 					b := []byte(req.PostData)
 
-					var o OrderReq
-					if err := json.Unmarshal(b, &o); err != nil {
-						log.Println(err)
-					}
-					o.PageSize = 100
-					e := time.Now().UnixMilli()
-					s := e - 86400000 * 7
-					o.StartSessionTime = s
-					o.EndSessionTime = e
-					b, _ = json.Marshal(o)
-
-					postReq, err := http.NewRequest(http.MethodPost, req.URL, bytes.NewBuffer(b))
-					if err != nil {
-						log.Println(err)
-					}
-					c := &http.Client{}
-					for k, r := range req.Headers {
-						postReq.Header.Set(k, fmt.Sprintf("%s", r))
-					}
-					for _, c := range cookies {
-						postReq.AddCookie(c)
-					}
-					resp, err := c.Do(postReq)
-					defer resp.Body.Close()
-
-					body, _ := ioutil.ReadAll(resp.Body)
-
-					http.PostForm("http://api.mxb.j1mi.com/index/transfer?use=ajax", url.Values{
-						"data": {string(body)},
-						"from": {"order"},
-						"date": {""},
-					})
-				}(*req)
-			}
-			if req.URL == "https://mc.pinduoduo.com/ragnaros-mms/after/sales/manage/queryProductAfterSalesStatistic" {
-				go func(req network.Request) {
-					time.Sleep(time.Second * 5)
-					b := []byte(req.PostData)
-
-					var o ShouHouReq
-					if err := json.Unmarshal(b, &o); err != nil {
-						log.Println(err)
-					}
-					o.PageSize = 30
-					for i := -4; i > -7; i-- {
-						n := time.Now().AddDate(0,0, i)
-						d := n.Format("2006-01-02")
-
-						o.StartDate = d
-						o.EndDate = d
+					for i := 1; i < 6; i++ {
+						var o OrderReq
+						if err := json.Unmarshal(b, &o); err != nil {
+							log.Println(err)
+						}
+						o.Page = i
+						o.PageSize = 100
+						e := time.Now().UnixMilli()
+						s := e - 86400000 * 7
+						o.StartSessionTime = s
+						o.EndSessionTime = e
 						b, _ = json.Marshal(o)
 
 						postReq, err := http.NewRequest(http.MethodPost, req.URL, bytes.NewBuffer(b))
@@ -121,9 +82,55 @@ func listenForNetworkEvent(ctx context.Context) {
 
 						http.PostForm("http://api.mxb.j1mi.com/index/transfer?use=ajax", url.Values{
 							"data": {string(body)},
-							"from": {"shouhou"},
-							"date": {d},
+							"from": {"order"},
+							"date": {""},
 						})
+						time.Sleep(time.Second * 2)
+					}
+				}(*req)
+			}
+			if req.URL == "https://mc.pinduoduo.com/ragnaros-mms/after/sales/manage/queryProductAfterSalesStatistic" {
+				go func(req network.Request) {
+					time.Sleep(time.Second * 5)
+					b := []byte(req.PostData)
+
+					for i := 1; i < 6; i++ {
+						var o ShouHouReq
+						if err := json.Unmarshal(b, &o); err != nil {
+							log.Println(err)
+						}
+						o.PageNum = i
+						o.PageSize = 30
+						for i := -4; i > -7; i-- {
+							n := time.Now().AddDate(0,0, i)
+							d := n.Format("2006-01-02")
+
+							o.StartDate = d
+							o.EndDate = d
+							b, _ = json.Marshal(o)
+
+							postReq, err := http.NewRequest(http.MethodPost, req.URL, bytes.NewBuffer(b))
+							if err != nil {
+								log.Println(err)
+							}
+							c := &http.Client{}
+							for k, r := range req.Headers {
+								postReq.Header.Set(k, fmt.Sprintf("%s", r))
+							}
+							for _, c := range cookies {
+								postReq.AddCookie(c)
+							}
+							resp, err := c.Do(postReq)
+							defer resp.Body.Close()
+
+							body, _ := ioutil.ReadAll(resp.Body)
+
+							http.PostForm("http://api.mxb.j1mi.com/index/transfer?use=ajax", url.Values{
+								"data": {string(body)},
+								"from": {"shouhou"},
+								"date": {d},
+							})
+						}
 					}
 				}(*req)
 			}
