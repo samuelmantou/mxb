@@ -77,6 +77,11 @@ func listenForNetworkEvent(ctx context.Context) {
 							postReq.AddCookie(c)
 						}
 						resp, err := c.Do(postReq)
+						if err != nil {
+							log.Println(err)
+							log.Println("发送请求销售地址失败")
+							return
+						}
 						defer resp.Body.Close()
 
 						body, _ := ioutil.ReadAll(resp.Body)
@@ -126,6 +131,11 @@ func listenForNetworkEvent(ctx context.Context) {
 									postReq.AddCookie(c)
 								}
 								resp, err := c.Do(postReq)
+								if err != nil {
+									log.Println(err)
+									log.Println("发送请求售后地址失败")
+									return
+								}
 								defer resp.Body.Close()
 
 								body, _ := ioutil.ReadAll(resp.Body)
