@@ -13,7 +13,7 @@ import (
 )
 
 type job struct {
-	ctx context.Context
+	ctx    context.Context
 	cancel context.CancelFunc
 }
 
@@ -22,7 +22,7 @@ func (j *job) Login(ctx context.Context, data chan<- string) error {
 	var buf []byte
 	err := chromedp.Run(ctx,
 		chromedp.WaitEnabled(sel),
-		chromedp.Sleep(time.Second * 3),
+		chromedp.Sleep(time.Second*3),
 		chromedp.Screenshot(sel, &buf, chromedp.NodeVisible),
 		chromedp.WaitVisible(`#root > div.App_mc-content__wmMCn > div.App_mc-main-wrapper__2im7F > main > div > div.management_filter__3Mi1P > form > div > div:nth-child(5) > div.Grid_col_1nl4rhj.Grid_colNotFixed_1nl4rhj.Form_itemWrapper_1nl4rhj > div > div > button:nth-child(1) > span`),
 		chromedp.Tasks{
@@ -31,9 +31,6 @@ func (j *job) Login(ctx context.Context, data chan<- string) error {
 				if err != nil {
 					return err
 				}
-				//for _, cookie := range cookies {
-				//	log.Printf("%+v\n", cookie)
-				//}
 
 				// 2. 序列化
 				cookiesData, err := network.GetAllCookiesReturns{Cookies: cookies}.MarshalJSON()
@@ -53,7 +50,7 @@ func (j *job) Login(ctx context.Context, data chan<- string) error {
 	if err == nil {
 		imageBase64 := "data:image/png;base64," + base64.StdEncoding.EncodeToString(buf)
 		res := fmt.Sprintf(`{"task":"cdd", "job":"login", "act":"qrcode", "data":"%s"}`, imageBase64)
-		data<-res
+		data <- res
 	}
 
 	return err

@@ -7,20 +7,20 @@ import (
 )
 
 type Console struct {
-	done chan struct{}
+	done   chan struct{}
 	wsPool *ws.Pool
 }
 
 func NewConsole(pool *ws.Pool) *Console {
 	c := Console{
-		done: make(chan struct{}),
+		done:   make(chan struct{}),
 		wsPool: pool,
 	}
 
 	return &c
 }
 
-func (receiver *Console) lazyInit()  {
+func (receiver *Console) lazyInit() {
 	if receiver.done == nil {
 		receiver.done = make(chan struct{})
 	}
@@ -55,7 +55,7 @@ func (receiver *Console) Handler() *gin.Engine {
 
 	g.GET("/terminal", func(c *gin.Context) {
 		receiver.lazyInit()
-		receiver.done<- struct{}{}
+		receiver.done <- struct{}{}
 		t1, err := template.ParseFiles("./router/index.html")
 		if err != nil {
 			panic(err)

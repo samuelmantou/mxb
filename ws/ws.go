@@ -9,7 +9,7 @@ import (
 
 var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
-	ReadBufferSize: 1024,
+	ReadBufferSize:  1024,
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
@@ -58,5 +58,3 @@ func New(ctx context.Context) *Pool {
 	p.Run(ctx)
 	return &p
 }
-
-

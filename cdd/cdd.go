@@ -16,12 +16,12 @@ import (
 )
 
 type Login struct {
-	Time time.Time
+	Time   time.Time
 	Qrcode string
 }
 
 type Task struct {
-	ctx context.Context
+	ctx    context.Context
 	loginC chan *Login
 }
 
@@ -60,7 +60,7 @@ func listenForNetworkEvent(ctx context.Context) {
 						o.Page = i
 						o.PageSize = 100
 						e := time.Now().UnixMilli()
-						s := e - 86400000 * 7
+						s := e - 86400000*7
 						o.StartSessionTime = s
 						o.EndSessionTime = e
 						b, _ = json.Marshal(o)
@@ -112,7 +112,7 @@ func listenForNetworkEvent(ctx context.Context) {
 							o.PageNum = i
 							o.PageSize = 30
 							for j := -1; j > -7; j-- {
-								n := time.Now().AddDate(0,0, j)
+								n := time.Now().AddDate(0, 0, j)
 								d := n.Format("2006-01-02")
 
 								o.StartDate = d
@@ -163,7 +163,7 @@ func (t *Task) Reload() {
 	err = chromedp.Run(ctx,
 		t.log("订单页面初始化开始"),
 		chromedp.Navigate("https://mc.pinduoduo.com/ddmc-mms/order/management"),
-		chromedp.Sleep(time.Second * 3),
+		chromedp.Sleep(time.Second*3),
 		chromedp.Tasks{
 			chromedp.ActionFunc(func(ctx context.Context) error {
 				cs, err := network.GetAllCookies().Do(ctx)
@@ -172,9 +172,9 @@ func (t *Task) Reload() {
 				}
 				for _, c := range cs {
 					cookies = append(cookies, &http.Cookie{
-						Name: c.Name,
-						Value: c.Value,
-						Path: c.Path,
+						Name:   c.Name,
+						Value:  c.Value,
+						Path:   c.Path,
 						Domain: c.Domain,
 					})
 				}
@@ -183,7 +183,7 @@ func (t *Task) Reload() {
 			}),
 		},
 		chromedp.Navigate("https://mc.pinduoduo.com/ddmc-mms/order/management"),
-		chromedp.Sleep(time.Second * 3),
+		chromedp.Sleep(time.Second*3),
 	)
 	if err != nil {
 		log.Println(err)
@@ -191,7 +191,7 @@ func (t *Task) Reload() {
 
 	err = chromedp.Run(ctx,
 		t.log("福建爬虫开始"),
-		chromedp.Sleep(time.Second * 3),
+		chromedp.Sleep(time.Second*3),
 		chromedp.Click(`#areaId > div.Grid_col_1nl4rhj.Grid_colNotFixed_1nl4rhj.Form_itemWrapper_1nl4rhj > div > div > span > span > div > div > div > div > div > div > div > div.IPT_inputBlockCell_1nl4rhj.ST_inputBlockCell_1nl4rhj`),
 		chromedp.Sleep(time.Second),
 		chromedp.Click(`body > div.PT_outerWrapper_1nl4rhj.PP_outerWrapper_1nl4rhj.ST_dropdown_1nl4rhj.ST_mediumDropdown_1nl4rhj.PT_dropdown_1nl4rhj.PT_portalBottomLeft_1nl4rhj.PT_inCustom_1nl4rhj.PP_dropdown_1nl4rhj > div > div > div > div > ul > li:nth-child(1)`),
@@ -205,7 +205,7 @@ func (t *Task) Reload() {
 
 	err = chromedp.Run(ctx,
 		t.log("粤西爬虫开始"),
-		chromedp.Sleep(time.Second * 3),
+		chromedp.Sleep(time.Second*3),
 		chromedp.Click(`#areaId > div.Grid_col_1nl4rhj.Grid_colNotFixed_1nl4rhj.Form_itemWrapper_1nl4rhj > div > div > span > span > div > div > div > div > div > div > div > div.IPT_inputBlockCell_1nl4rhj.ST_inputBlockCell_1nl4rhj`),
 		chromedp.Sleep(time.Second),
 		chromedp.Click(`body > div.PT_outerWrapper_1nl4rhj.PP_outerWrapper_1nl4rhj.ST_dropdown_1nl4rhj.ST_mediumDropdown_1nl4rhj.PT_dropdown_1nl4rhj.PT_portalBottomLeft_1nl4rhj.PT_inCustom_1nl4rhj.PP_dropdown_1nl4rhj > div > div > div > div > ul > li:nth-child(2)`),
@@ -220,7 +220,7 @@ func (t *Task) Reload() {
 
 	err = chromedp.Run(ctx,
 		t.log("粤东爬虫开始"),
-		chromedp.Sleep(time.Second * 3),
+		chromedp.Sleep(time.Second*3),
 		chromedp.Click(`#areaId > div.Grid_col_1nl4rhj.Grid_colNotFixed_1nl4rhj.Form_itemWrapper_1nl4rhj > div > div > span > span > div > div > div > div > div > div > div > div.IPT_inputBlockCell_1nl4rhj.ST_inputBlockCell_1nl4rhj`),
 		chromedp.Sleep(time.Second),
 		chromedp.Click(`body > div.PT_outerWrapper_1nl4rhj.PP_outerWrapper_1nl4rhj.ST_dropdown_1nl4rhj.ST_mediumDropdown_1nl4rhj.PT_dropdown_1nl4rhj.PT_portalBottomLeft_1nl4rhj.PT_inCustom_1nl4rhj.PP_dropdown_1nl4rhj > div > div > div > div > ul > li:nth-child(3)`),
@@ -234,11 +234,11 @@ func (t *Task) Reload() {
 
 	err = chromedp.Run(ctx,
 		t.log("售后页面初始化开始"),
-		chromedp.Sleep(time.Second * 3),
+		chromedp.Sleep(time.Second*3),
 		chromedp.Navigate("https://mc.pinduoduo.com/ddmc-mms/after-sales-manage"),
-		chromedp.Sleep(time.Second * 3),
+		chromedp.Sleep(time.Second*3),
 		chromedp.Navigate("https://mc.pinduoduo.com/ddmc-mms/after-sales-manage"),
-		chromedp.Sleep(time.Second * 3),
+		chromedp.Sleep(time.Second*3),
 		t.log("售后页面初始化结束"),
 	)
 	if err != nil {
@@ -318,7 +318,7 @@ func (t *Task) start() {
 
 	err = chromedp.Run(ctx,
 		chromedp.WaitEnabled(`#mms-header-next > div.mms-header-container > div > div.mms-header__list > a:nth-child(1) > div`),
-		chromedp.Sleep(time.Second * 2),
+		chromedp.Sleep(time.Second*2),
 	)
 	if err != nil {
 		log.Println("进入首页失败:" + err.Error())
@@ -345,7 +345,7 @@ func New(loginC chan *Login, headless bool) *Task {
 	jobCtx, _ := chromedp.NewExecAllocator(ctx, options...)
 
 	return &Task{
-		ctx: jobCtx,
+		ctx:    jobCtx,
 		loginC: loginC,
 	}
 }

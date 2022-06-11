@@ -8,7 +8,7 @@ import (
 )
 
 type job struct {
-	ctx context.Context
+	ctx    context.Context
 	cancel context.CancelFunc
 }
 
