@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	cdd2 "mxb/cdd"
 	"mxb/jddb"
 	"time"
@@ -17,15 +16,11 @@ func main() {
 	task := cdd2.New(loginC, false)
 	task.Run()
 	task.Reload()
+	jddb.Run()
 	for {
 		time.Sleep(time.Hour * 1)
 		task.Reload()
-		go func() {
-			if err := recover(); err != nil {
-				log.Println(err)
-			}
-			jddb.Run()
-		}()
+		jddb.Run()
 	}
 	<-make(chan struct{})
 }
