@@ -27,9 +27,11 @@ type JdData struct {
 
 func Run() {
 	go func() {
-		if err := recover(); err != nil {
-			log.Println(err)
-		}
+		defer func() {
+			if err := recover(); err != nil {
+				log.Println(err)
+			}
+		}()
 		query := url.Values{}
 		query.Add("database", "AIS20220601165723")
 		query.Add("encrypt", "disable")
