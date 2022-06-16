@@ -34,6 +34,113 @@ type OrderReq struct {
 	EndSessionTime   int64 `json:"endSessionTime"`
 }
 
+type OrderResp struct {
+	Success   bool        `json:"success"`
+	ErrorCode int         `json:"errorCode"`
+	ErrorMsg  interface{} `json:"errorMsg"`
+	Result    struct {
+		Total      int `json:"total"`
+		UpdateTime struct {
+			Now            int64       `json:"now"`
+			SessionEnd     bool        `json:"sessionEnd"`
+			LastUpdateTime interface{} `json:"lastUpdateTime"`
+			NextUpdateTime interface{} `json:"nextUpdateTime"`
+			AutoUpdateTime interface{} `json:"autoUpdateTime"`
+		} `json:"updateTime"`
+		ResultList []struct {
+			ProductId          int64  `json:"productId"`
+			WarehouseProductId int64  `json:"warehouseProductId"`
+			ProductName        string `json:"productName"`
+			ProductThumbUrl    string `json:"productThumbUrl"`
+			Total              int    `json:"total"`
+			SellUnitTotal      int    `json:"sellUnitTotal"`
+			SellUnitName       string `json:"sellUnitName"`
+			QuantityManageInfo struct {
+				HitConfirmInboundGray      bool `json:"hitConfirmInboundGray"`
+				HitInboundDisplayGray      bool `json:"hitInboundDisplayGray"`
+				ShowSellPlan               bool `json:"showSellPlan"`
+				ReplaceInboundStat         bool `json:"replaceInboundStat"`
+				ShowRealTimeWarehouseStock bool `json:"showRealTimeWarehouseStock"`
+				QuantityInfo               struct {
+					Quantity               int `json:"quantity"`
+					SellUnitQuantity       int `json:"sellUnitQuantity"`
+					InboundTotal           int `json:"inboundTotal"`
+					PurchasingInboundTotal int `json:"purchasingInboundTotal"`
+				} `json:"quantityInfo"`
+				ConfirmEventInfo          interface{} `json:"confirmEventInfo"`
+				IsWarehouseStockSync      bool        `json:"isWarehouseStockSync"`
+				ShowInventoryDetail       bool        `json:"showInventoryDetail"`
+				EnableInventoryDistribute bool        `json:"enableInventoryDistribute"`
+				InventoryDetail           struct {
+					WarehouseDistributableInventory interface{} `json:"warehouseDistributableInventory"`
+					WarehouseTotalQuantity          interface{} `json:"warehouseTotalQuantity"`
+					CenterSalableInventory          int         `json:"centerSalableInventory"`
+					CenterInventoryList             []struct {
+						WarehouseId                   int         `json:"warehouseId"`
+						WarehouseName                 string      `json:"warehouseName"`
+						CenterSupplierInboundQuantity int         `json:"centerSupplierInboundQuantity"`
+						CenterInventory               interface{} `json:"centerInventory"`
+						CenterAllotInboundQuantity    int         `json:"centerAllotInboundQuantity"`
+						CenterAllotOnWayQuantity      int         `json:"centerAllotOnWayQuantity"`
+						DisplayAllotTotal             int         `json:"displayAllotTotal"`
+						DisplayRealTimeInventory      interface{} `json:"displayRealTimeInventory"`
+					} `json:"centerInventoryList"`
+					ShareDistributableInventory   interface{} `json:"shareDistributableInventory"`
+					ShareRelatedInventory         interface{} `json:"shareRelatedInventory"`
+					ShareDistributionList         interface{} `json:"shareDistributionList"`
+					ProcessDistributableInventory interface{} `json:"processDistributableInventory"`
+					ProcessRelatedInventory       interface{} `json:"processRelatedInventory"`
+					ProcessDistributionList       interface{} `json:"processDistributionList"`
+				} `json:"inventoryDetail"`
+				AppointmentData        interface{} `json:"appointmentData"`
+				ShowAdvanceDeliverData bool        `json:"showAdvanceDeliverData"`
+				AdvanceDeliverData     interface{} `json:"advanceDeliverData"`
+			} `json:"quantityManageInfo"`
+			SpecQuantityDetails []struct {
+				SpecDesc         string `json:"specDesc"`
+				Total            int    `json:"total"`
+				SellUnitCount    int    `json:"sellUnitCount"`
+				SellUnitTotal    int    `json:"sellUnitTotal"`
+				Quantity         int    `json:"quantity"`
+				SellUnitQuantity int    `json:"sellUnitQuantity"`
+				PriceDetail      []struct {
+					SupplierPrice       interface{} `json:"supplierPrice"`
+					SupplierPriceDetail interface{} `json:"supplierPriceDetail"`
+					Total               int         `json:"total"`
+					SellUnitTotal       int         `json:"sellUnitTotal"`
+					SessionEnd          bool        `json:"sessionEnd"`
+					LastUpdateTime      interface{} `json:"lastUpdateTime"`
+					NextUpdateTime      interface{} `json:"nextUpdateTime"`
+					StatId              interface{} `json:"statId"`
+				} `json:"priceDetail"`
+			} `json:"specQuantityDetails"`
+			HasCode69        bool   `json:"hasCode69"`
+			HasPrintedLabel  bool   `json:"hasPrintedLabel"`
+			SessionDate      int64  `json:"sessionDate"`
+			SessionEnd       bool   `json:"sessionEnd"`
+			AreaId           int    `json:"areaId"`
+			AreaName         string `json:"areaName"`
+			WarehouseId      int    `json:"warehouseId"`
+			WarehouseName    string `json:"warehouseName"`
+			WarehouseAddress string `json:"warehouseAddress"`
+			WarehouseGroupId int    `json:"warehouseGroupId"`
+			IsProduct        bool   `json:"isProduct"`
+			HasMultiSchedule bool   `json:"hasMultiSchedule"`
+			SalesPlan        struct {
+				PlanSales           int         `json:"planSales"`
+				LatestPlanSendTime  int64       `json:"latestPlanSendTime"`
+				StockSynced         int         `json:"stockSynced"`
+				SalesPlanDetailList interface{} `json:"salesPlanDetailList"`
+			} `json:"salesPlan"`
+			ProductSaleStatus interface{} `json:"productSaleStatus"`
+		} `json:"resultList"`
+		ErrorMsgList           interface{} `json:"errorMsgList"`
+		ShowSellPlan           bool        `json:"showSellPlan"`
+		ShowInventoryDetail    bool        `json:"showInventoryDetail"`
+		ShowAdvanceDeliverData bool        `json:"showAdvanceDeliverData"`
+	} `json:"result"`
+}
+
 type ShouHouReq struct {
 	StartDate string `json:"startDate"`
 	EndDate   string `json:"endDate"`
@@ -51,47 +158,56 @@ func listenForNetworkEvent(ctx context.Context) {
 					log.Println("订单开始抓包")
 					time.Sleep(time.Second * 5)
 					b := []byte(req.PostData)
+					for d := 7; d >= 0; d-- {
+						s := time.Now().UnixMilli() - 86400000*int64(d)
+						e := s
+						for i := 1; i < 3; i++ {
+							var o OrderReq
+							if err := json.Unmarshal(b, &o); err != nil {
+								log.Println(err)
+							}
+							o.Page = i
+							o.PageSize = 10
+							//e := time.Now().UnixMilli()
+							//s := e - 86400000*7
+							o.StartSessionTime = s
+							o.EndSessionTime = e
+							b, _ = json.Marshal(o)
 
-					for i := 1; i < 6; i++ {
-						var o OrderReq
-						if err := json.Unmarshal(b, &o); err != nil {
-							log.Println(err)
-						}
-						o.Page = i
-						o.PageSize = 100
-						e := time.Now().UnixMilli()
-						s := e - 86400000*7
-						o.StartSessionTime = s
-						o.EndSessionTime = e
-						b, _ = json.Marshal(o)
+							postReq, err := http.NewRequest(http.MethodPost, req.URL, bytes.NewBuffer(b))
+							if err != nil {
+								log.Println(err)
+							}
+							c := &http.Client{}
+							for k, r := range req.Headers {
+								postReq.Header.Set(k, fmt.Sprintf("%s", r))
+							}
+							for _, c := range cookies {
+								postReq.AddCookie(c)
+							}
+							resp, err := c.Do(postReq)
+							if err != nil {
+								log.Println(err)
+								log.Println("发送请求销售地址失败")
+								return
+							}
+							defer resp.Body.Close()
 
-						postReq, err := http.NewRequest(http.MethodPost, req.URL, bytes.NewBuffer(b))
-						if err != nil {
-							log.Println(err)
-						}
-						c := &http.Client{}
-						for k, r := range req.Headers {
-							postReq.Header.Set(k, fmt.Sprintf("%s", r))
-						}
-						for _, c := range cookies {
-							postReq.AddCookie(c)
-						}
-						resp, err := c.Do(postReq)
-						if err != nil {
-							log.Println(err)
-							log.Println("发送请求销售地址失败")
-							return
-						}
-						defer resp.Body.Close()
+							body, _ := ioutil.ReadAll(resp.Body)
+							var r OrderResp
+							json.Unmarshal(body, &r)
+							if r.Result.Total == 0 {
+								continue
+							}
 
-						body, _ := ioutil.ReadAll(resp.Body)
+							http.PostForm("http://api.mxb.j1mi.com/index/transfer?use=ajax", url.Values{
+								"data": {string(body)},
+								"from": {"order"},
+								"date": {""},
+							})
+							time.Sleep(time.Second * 2)
+						}
 
-						http.PostForm("http://api.mxb.j1mi.com/index/transfer?use=ajax", url.Values{
-							"data": {string(body)},
-							"from": {"order"},
-							"date": {""},
-						})
-						time.Sleep(time.Second * 2)
 					}
 					log.Println("订单结束抓包")
 				}(*req)
