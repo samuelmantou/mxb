@@ -200,6 +200,10 @@ func listenForNetworkEvent(ctx context.Context) {
 								continue
 							}
 
+							for _, item := range r.Result.ResultList {
+								log.Println(item.SessionDate)
+							}
+
 							http.PostForm("http://api.mxb.j1mi.com/index/transfer?use=ajax", url.Values{
 								"data": {string(body)},
 								"from": {"order"},
