@@ -149,6 +149,12 @@ type ShouHouReq struct {
 	PageSize  int    `json:"pageSize"`
 }
 
+type ShouHouResp struct {
+	Success   bool   `json:"success"`
+	ErrorCode int    `json:"error_code"`
+	ErrorMsg  string `json:"error_msg"`
+}
+
 func listenForNetworkEvent(ctx context.Context) {
 	chromedp.ListenTarget(ctx, func(ev interface{}) {
 		if event, ok := ev.(*network.EventRequestWillBeSent); ok {
@@ -167,7 +173,7 @@ func listenForNetworkEvent(ctx context.Context) {
 								log.Println(err)
 							}
 							o.Page = i
-							o.PageSize = 10
+							o.PageSize = 100
 							//e := time.Now().UnixMilli()
 							//s := e - 86400000*7
 							o.StartSessionTime = s
@@ -196,18 +202,14 @@ func listenForNetworkEvent(ctx context.Context) {
 							body, _ := ioutil.ReadAll(resp.Body)
 							var r OrderResp
 							json.Unmarshal(body, &r)
-							if r.Result.Total == 0 {
+							if r.Result.Total == 0 || len(r.Result.ResultList) == 0 {
 								continue
 							}
-
-							for _, item := range r.Result.ResultList {
-								log.Println(item.SessionDate)
-							}
-
+							date := time.UnixMilli(r.Result.ResultList[0].SessionDate).Format("2006-01-02")
 							http.PostForm("http://api.mxb.j1mi.com/index/transfer?use=ajax", url.Values{
 								"data": {string(body)},
 								"from": {"order"},
-								"date": {""},
+								"date": {date},
 							})
 							time.Sleep(time.Second * 2)
 						}
@@ -259,7 +261,11 @@ func listenForNetworkEvent(ctx context.Context) {
 								defer resp.Body.Close()
 
 								body, _ := ioutil.ReadAll(resp.Body)
-
+								var r ShouHouResp
+								json.Unmarshal(body, &r)
+								if r.Success == false {
+									continue
+								}
 								http.PostForm("http://api.mxb.j1mi.com/index/transfer?use=ajax", url.Values{
 									"data": {string(body)},
 									"from": {"shouhou"},
