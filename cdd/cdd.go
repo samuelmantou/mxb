@@ -34,6 +34,94 @@ type OrderReq struct {
 	EndSessionTime   int64 `json:"endSessionTime"`
 }
 
+type OrderResultListResp struct {
+	ProductId          int64  `json:"productId"`
+	WarehouseProductId int64  `json:"warehouseProductId"`
+	ProductName        string `json:"productName"`
+	ProductThumbUrl    string `json:"productThumbUrl"`
+	Total              int    `json:"total"`
+	SellUnitTotal      int    `json:"sellUnitTotal"`
+	SellUnitName       string `json:"sellUnitName"`
+	QuantityManageInfo struct {
+		HitConfirmInboundGray      bool `json:"hitConfirmInboundGray"`
+		HitInboundDisplayGray      bool `json:"hitInboundDisplayGray"`
+		ShowSellPlan               bool `json:"showSellPlan"`
+		ReplaceInboundStat         bool `json:"replaceInboundStat"`
+		ShowRealTimeWarehouseStock bool `json:"showRealTimeWarehouseStock"`
+		QuantityInfo               struct {
+			Quantity               int `json:"quantity"`
+			SellUnitQuantity       int `json:"sellUnitQuantity"`
+			InboundTotal           int `json:"inboundTotal"`
+			PurchasingInboundTotal int `json:"purchasingInboundTotal"`
+		} `json:"quantityInfo"`
+		ConfirmEventInfo          interface{} `json:"confirmEventInfo"`
+		IsWarehouseStockSync      bool        `json:"isWarehouseStockSync"`
+		ShowInventoryDetail       bool        `json:"showInventoryDetail"`
+		EnableInventoryDistribute bool        `json:"enableInventoryDistribute"`
+		InventoryDetail           struct {
+			WarehouseDistributableInventory interface{} `json:"warehouseDistributableInventory"`
+			WarehouseTotalQuantity          interface{} `json:"warehouseTotalQuantity"`
+			CenterSalableInventory          int         `json:"centerSalableInventory"`
+			CenterInventoryList             []struct {
+				WarehouseId                   int         `json:"warehouseId"`
+				WarehouseName                 string      `json:"warehouseName"`
+				CenterSupplierInboundQuantity int         `json:"centerSupplierInboundQuantity"`
+				CenterInventory               interface{} `json:"centerInventory"`
+				CenterAllotInboundQuantity    int         `json:"centerAllotInboundQuantity"`
+				CenterAllotOnWayQuantity      int         `json:"centerAllotOnWayQuantity"`
+				DisplayAllotTotal             int         `json:"displayAllotTotal"`
+				DisplayRealTimeInventory      interface{} `json:"displayRealTimeInventory"`
+			} `json:"centerInventoryList"`
+			ShareDistributableInventory   interface{} `json:"shareDistributableInventory"`
+			ShareRelatedInventory         interface{} `json:"shareRelatedInventory"`
+			ShareDistributionList         interface{} `json:"shareDistributionList"`
+			ProcessDistributableInventory interface{} `json:"processDistributableInventory"`
+			ProcessRelatedInventory       interface{} `json:"processRelatedInventory"`
+			ProcessDistributionList       interface{} `json:"processDistributionList"`
+		} `json:"inventoryDetail"`
+		AppointmentData        interface{} `json:"appointmentData"`
+		ShowAdvanceDeliverData bool        `json:"showAdvanceDeliverData"`
+		AdvanceDeliverData     interface{} `json:"advanceDeliverData"`
+	} `json:"quantityManageInfo"`
+	SpecQuantityDetails []struct {
+		SpecDesc         string `json:"specDesc"`
+		Total            int    `json:"total"`
+		SellUnitCount    int    `json:"sellUnitCount"`
+		SellUnitTotal    int    `json:"sellUnitTotal"`
+		Quantity         int    `json:"quantity"`
+		SellUnitQuantity int    `json:"sellUnitQuantity"`
+		PriceDetail      []struct {
+			SupplierPrice       interface{} `json:"supplierPrice"`
+			SupplierPriceDetail interface{} `json:"supplierPriceDetail"`
+			Total               int         `json:"total"`
+			SellUnitTotal       int         `json:"sellUnitTotal"`
+			SessionEnd          bool        `json:"sessionEnd"`
+			LastUpdateTime      interface{} `json:"lastUpdateTime"`
+			NextUpdateTime      interface{} `json:"nextUpdateTime"`
+			StatId              interface{} `json:"statId"`
+		} `json:"priceDetail"`
+	} `json:"specQuantityDetails"`
+	HasCode69        bool   `json:"hasCode69"`
+	HasPrintedLabel  bool   `json:"hasPrintedLabel"`
+	SessionDate      int64  `json:"sessionDate"`
+	SessionEnd       bool   `json:"sessionEnd"`
+	AreaId           int    `json:"areaId"`
+	AreaName         string `json:"areaName"`
+	WarehouseId      int    `json:"warehouseId"`
+	WarehouseName    string `json:"warehouseName"`
+	WarehouseAddress string `json:"warehouseAddress"`
+	WarehouseGroupId int    `json:"warehouseGroupId"`
+	IsProduct        bool   `json:"isProduct"`
+	HasMultiSchedule bool   `json:"hasMultiSchedule"`
+	SalesPlan        struct {
+		PlanSales           int         `json:"planSales"`
+		LatestPlanSendTime  int64       `json:"latestPlanSendTime"`
+		StockSynced         int         `json:"stockSynced"`
+		SalesPlanDetailList interface{} `json:"salesPlanDetailList"`
+	} `json:"salesPlan"`
+	ProductSaleStatus interface{} `json:"productSaleStatus"`
+}
+
 type OrderResp struct {
 	Success   bool        `json:"success"`
 	ErrorCode int         `json:"errorCode"`
@@ -47,97 +135,11 @@ type OrderResp struct {
 			NextUpdateTime interface{} `json:"nextUpdateTime"`
 			AutoUpdateTime interface{} `json:"autoUpdateTime"`
 		} `json:"updateTime"`
-		ResultList []struct {
-			ProductId          int64  `json:"productId"`
-			WarehouseProductId int64  `json:"warehouseProductId"`
-			ProductName        string `json:"productName"`
-			ProductThumbUrl    string `json:"productThumbUrl"`
-			Total              int    `json:"total"`
-			SellUnitTotal      int    `json:"sellUnitTotal"`
-			SellUnitName       string `json:"sellUnitName"`
-			QuantityManageInfo struct {
-				HitConfirmInboundGray      bool `json:"hitConfirmInboundGray"`
-				HitInboundDisplayGray      bool `json:"hitInboundDisplayGray"`
-				ShowSellPlan               bool `json:"showSellPlan"`
-				ReplaceInboundStat         bool `json:"replaceInboundStat"`
-				ShowRealTimeWarehouseStock bool `json:"showRealTimeWarehouseStock"`
-				QuantityInfo               struct {
-					Quantity               int `json:"quantity"`
-					SellUnitQuantity       int `json:"sellUnitQuantity"`
-					InboundTotal           int `json:"inboundTotal"`
-					PurchasingInboundTotal int `json:"purchasingInboundTotal"`
-				} `json:"quantityInfo"`
-				ConfirmEventInfo          interface{} `json:"confirmEventInfo"`
-				IsWarehouseStockSync      bool        `json:"isWarehouseStockSync"`
-				ShowInventoryDetail       bool        `json:"showInventoryDetail"`
-				EnableInventoryDistribute bool        `json:"enableInventoryDistribute"`
-				InventoryDetail           struct {
-					WarehouseDistributableInventory interface{} `json:"warehouseDistributableInventory"`
-					WarehouseTotalQuantity          interface{} `json:"warehouseTotalQuantity"`
-					CenterSalableInventory          int         `json:"centerSalableInventory"`
-					CenterInventoryList             []struct {
-						WarehouseId                   int         `json:"warehouseId"`
-						WarehouseName                 string      `json:"warehouseName"`
-						CenterSupplierInboundQuantity int         `json:"centerSupplierInboundQuantity"`
-						CenterInventory               interface{} `json:"centerInventory"`
-						CenterAllotInboundQuantity    int         `json:"centerAllotInboundQuantity"`
-						CenterAllotOnWayQuantity      int         `json:"centerAllotOnWayQuantity"`
-						DisplayAllotTotal             int         `json:"displayAllotTotal"`
-						DisplayRealTimeInventory      interface{} `json:"displayRealTimeInventory"`
-					} `json:"centerInventoryList"`
-					ShareDistributableInventory   interface{} `json:"shareDistributableInventory"`
-					ShareRelatedInventory         interface{} `json:"shareRelatedInventory"`
-					ShareDistributionList         interface{} `json:"shareDistributionList"`
-					ProcessDistributableInventory interface{} `json:"processDistributableInventory"`
-					ProcessRelatedInventory       interface{} `json:"processRelatedInventory"`
-					ProcessDistributionList       interface{} `json:"processDistributionList"`
-				} `json:"inventoryDetail"`
-				AppointmentData        interface{} `json:"appointmentData"`
-				ShowAdvanceDeliverData bool        `json:"showAdvanceDeliverData"`
-				AdvanceDeliverData     interface{} `json:"advanceDeliverData"`
-			} `json:"quantityManageInfo"`
-			SpecQuantityDetails []struct {
-				SpecDesc         string `json:"specDesc"`
-				Total            int    `json:"total"`
-				SellUnitCount    int    `json:"sellUnitCount"`
-				SellUnitTotal    int    `json:"sellUnitTotal"`
-				Quantity         int    `json:"quantity"`
-				SellUnitQuantity int    `json:"sellUnitQuantity"`
-				PriceDetail      []struct {
-					SupplierPrice       interface{} `json:"supplierPrice"`
-					SupplierPriceDetail interface{} `json:"supplierPriceDetail"`
-					Total               int         `json:"total"`
-					SellUnitTotal       int         `json:"sellUnitTotal"`
-					SessionEnd          bool        `json:"sessionEnd"`
-					LastUpdateTime      interface{} `json:"lastUpdateTime"`
-					NextUpdateTime      interface{} `json:"nextUpdateTime"`
-					StatId              interface{} `json:"statId"`
-				} `json:"priceDetail"`
-			} `json:"specQuantityDetails"`
-			HasCode69        bool   `json:"hasCode69"`
-			HasPrintedLabel  bool   `json:"hasPrintedLabel"`
-			SessionDate      int64  `json:"sessionDate"`
-			SessionEnd       bool   `json:"sessionEnd"`
-			AreaId           int    `json:"areaId"`
-			AreaName         string `json:"areaName"`
-			WarehouseId      int    `json:"warehouseId"`
-			WarehouseName    string `json:"warehouseName"`
-			WarehouseAddress string `json:"warehouseAddress"`
-			WarehouseGroupId int    `json:"warehouseGroupId"`
-			IsProduct        bool   `json:"isProduct"`
-			HasMultiSchedule bool   `json:"hasMultiSchedule"`
-			SalesPlan        struct {
-				PlanSales           int         `json:"planSales"`
-				LatestPlanSendTime  int64       `json:"latestPlanSendTime"`
-				StockSynced         int         `json:"stockSynced"`
-				SalesPlanDetailList interface{} `json:"salesPlanDetailList"`
-			} `json:"salesPlan"`
-			ProductSaleStatus interface{} `json:"productSaleStatus"`
-		} `json:"resultList"`
-		ErrorMsgList           interface{} `json:"errorMsgList"`
-		ShowSellPlan           bool        `json:"showSellPlan"`
-		ShowInventoryDetail    bool        `json:"showInventoryDetail"`
-		ShowAdvanceDeliverData bool        `json:"showAdvanceDeliverData"`
+		ResultList             []OrderResultListResp `json:"resultList"`
+		ErrorMsgList           interface{}           `json:"errorMsgList"`
+		ShowSellPlan           bool                  `json:"showSellPlan"`
+		ShowInventoryDetail    bool                  `json:"showInventoryDetail"`
+		ShowAdvanceDeliverData bool                  `json:"showAdvanceDeliverData"`
 	} `json:"result"`
 }
 
@@ -281,11 +283,15 @@ func listenForNetworkEvent(ctx context.Context) {
 	})
 }
 
+var listeners bool
+
 func (t *Task) Reload() {
 	var err error
 	ctx := t.ctx
-
-	listenForNetworkEvent(ctx)
+	if listeners == false {
+		listenForNetworkEvent(ctx)
+		listeners = true
+	}
 	err = chromedp.Run(ctx,
 		t.log("订单页面初始化开始"),
 		chromedp.Navigate("https://mc.pinduoduo.com/ddmc-mms/order/management"),
