@@ -378,7 +378,6 @@ func (t *Task) grapData() {
 			for j := -1; j > -7; j-- {
 				n := time.Now().AddDate(0, 0, j)
 				d := n.Format("2006-01-02")
-
 				o.StartDate = d
 				o.EndDate = d
 				b, _ := json.Marshal(o)
