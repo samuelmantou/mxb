@@ -20,7 +20,7 @@ func main() {
 	task.Reload()
 	jddb.Run()
 	for {
-		time.Sleep(time.Hour * 1)
+		time.Sleep(time.Minute * 5)
 		task.Reload()
 		jddb.Run()
 	}

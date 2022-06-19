@@ -157,123 +157,43 @@ type ShouHouResp struct {
 	ErrorMsg  string `json:"error_msg"`
 }
 
+type OrderBaseReq struct {
+	headers network.Headers
+	orderParams OrderReq
+	shouHouParams ShouHouReq
+}
+
+var (
+	orderReqs = make(map[int]OrderBaseReq)
+	shouhouReqs = make(map[int]OrderBaseReq)
+	orderUrl = "https://mc.pinduoduo.com/cartman-mms/orderManagement/pageQueryDetail"
+	shouhouUrl = "https://mc.pinduoduo.com/ragnaros-mms/after/sales/manage/queryProductAfterSalesStatistic"
+)
+
 func listenForNetworkEvent(ctx context.Context) {
 	chromedp.ListenTarget(ctx, func(ev interface{}) {
 		if event, ok := ev.(*network.EventRequestWillBeSent); ok {
 			req := event.Request
-			if req.URL == "https://mc.pinduoduo.com/cartman-mms/orderManagement/pageQueryDetail" {
-				go func(req network.Request) {
-					log.Println("订单开始抓包")
-					time.Sleep(time.Second * 5)
-					b := []byte(req.PostData)
-					for d := 7; d >= 0; d-- {
-						s := time.Now().UnixMilli() - 86400000*int64(d)
-						e := s
-						for i := 1; i < 3; i++ {
-							var o OrderReq
-							if err := json.Unmarshal(b, &o); err != nil {
-								log.Println(err)
-							}
-							o.Page = i
-							o.PageSize = 100
-							//e := time.Now().UnixMilli()
-							//s := e - 86400000*7
-							o.StartSessionTime = s
-							o.EndSessionTime = e
-							b, _ = json.Marshal(o)
-
-							postReq, err := http.NewRequest(http.MethodPost, req.URL, bytes.NewBuffer(b))
-							if err != nil {
-								log.Println(err)
-							}
-							c := &http.Client{}
-							for k, r := range req.Headers {
-								postReq.Header.Set(k, fmt.Sprintf("%s", r))
-							}
-							for _, c := range cookies {
-								postReq.AddCookie(c)
-							}
-							resp, err := c.Do(postReq)
-							if err != nil {
-								log.Println(err)
-								log.Println("发送请求销售地址失败")
-								return
-							}
-							defer resp.Body.Close()
-
-							body, _ := ioutil.ReadAll(resp.Body)
-							var r OrderResp
-							json.Unmarshal(body, &r)
-							if r.Result.Total == 0 || len(r.Result.ResultList) == 0 {
-								continue
-							}
-							date := time.UnixMilli(r.Result.ResultList[0].SessionDate).Format("2006-01-02")
-							http.PostForm("http://api.mxb.j1mi.com/index/transfer?use=ajax", url.Values{
-								"data": {string(body)},
-								"from": {"order"},
-								"date": {date},
-							})
-							time.Sleep(time.Second * 2)
-						}
-
-					}
-					log.Println("订单结束抓包")
-				}(*req)
+			if req.URL == orderUrl {
+				var o OrderReq
+				if err := json.Unmarshal([]byte(req.PostData), &o); err != nil {
+					log.Println(err)
+				}
+				orderReqs[o.AreaId] = OrderBaseReq{
+					headers: req.Headers,
+					orderParams: o,
+				}
 			}
-			if req.URL == "https://mc.pinduoduo.com/ragnaros-mms/after/sales/manage/queryProductAfterSalesStatistic" {
+			if req.URL == shouhouUrl {
 				go func(req network.Request) {
-					log.Println("售后开始抓包")
-					time.Sleep(time.Second * 5)
-					b := []byte(req.PostData)
-
+					var o ShouHouReq
+					if err := json.Unmarshal([]byte(req.PostData), &o); err != nil {
+						log.Println(err)
+					}
 					for _, areaId := range []int{4, 19881230, 19881231} {
-						for i := 1; i < 6; i++ {
-							var o ShouHouReq
-							if err := json.Unmarshal(b, &o); err != nil {
-								log.Println(err)
-							}
-							o.AreaId = areaId
-							o.PageNum = i
-							o.PageSize = 30
-							for j := -1; j > -7; j-- {
-								n := time.Now().AddDate(0, 0, j)
-								d := n.Format("2006-01-02")
-
-								o.StartDate = d
-								o.EndDate = d
-								b, _ = json.Marshal(o)
-
-								postReq, err := http.NewRequest(http.MethodPost, req.URL, bytes.NewBuffer(b))
-								if err != nil {
-									log.Println(err)
-								}
-								c := &http.Client{}
-								for k, r := range req.Headers {
-									postReq.Header.Set(k, fmt.Sprintf("%s", r))
-								}
-								for _, c := range cookies {
-									postReq.AddCookie(c)
-								}
-								resp, err := c.Do(postReq)
-								if err != nil {
-									log.Println(err)
-									log.Println("发送请求售后地址失败")
-									return
-								}
-								defer resp.Body.Close()
-
-								body, _ := ioutil.ReadAll(resp.Body)
-								var r ShouHouResp
-								json.Unmarshal(body, &r)
-								if r.Success == false {
-									continue
-								}
-								http.PostForm("http://api.mxb.j1mi.com/index/transfer?use=ajax", url.Values{
-									"data": {string(body)},
-									"from": {"shouhou"},
-									"date": {d},
-								})
-							}
+						shouhouReqs[areaId] = OrderBaseReq{
+							headers: req.Headers,
+							shouHouParams: o,
 						}
 					}
 					log.Println("售后结束抓包")
@@ -348,7 +268,6 @@ func (t *Task) Reload() {
 	if err != nil {
 		log.Println("粤西爬虫失败:" + err.Error())
 	}
-	//
 
 	err = chromedp.Run(ctx,
 		t.log("粤东爬虫开始"),
@@ -390,33 +309,115 @@ func (t *Task) Reload() {
 		log.Println(err)
 	}
 
-	//err = chromedp.Run(ctx,
-	//	t.log("福建省爬虫选择下拉"),
-	//	chromedp.Click(`#root > div.App_mc-content__wmMCn > div.App_mc-main-wrapper__2im7F > main > div > div > form > div > div:nth-child(1) > div.ST_outerWrapper_1nl4rhj.ST_medium_1nl4rhj > div > div > div > div > div > div > div.IPT_inputBlockCell_1nl4rhj.ST_inputBlockCell_1nl4rhj`),
-	//	chromedp.Sleep(time.Second),
-	//	chromedp.Click(`body > div.PT_outerWrapper_1nl4rhj.PP_outerWrapper_1nl4rhj.ST_dropdown_1nl4rhj.ST_mediumDropdown_1nl4rhj.PT_dropdown_1nl4rhj.PT_portalBottomLeft_1nl4rhj.PT_inCustom_1nl4rhj.PP_dropdown_1nl4rhj > div > div > div > div > ul > li:nth-child(2)`),
-	//	chromedp.Sleep(time.Second),
-	//	chromedp.Click(`#root > div.App_mc-content__wmMCn > div.App_mc-main-wrapper__2im7F > main > div > div > form > div > button`),
-	//	t.log("福建省爬虫查询"),
-	//)
-	//if err != nil {
-	//	log.Println(err)
-	//}
-
-	//err = chromedp.Run(ctx,
-	//	t.log("福建省爬虫选择下拉"),
-	//	chromedp.Click(`#root > div.App_mc-content__wmMCn > div.App_mc-main-wrapper__2im7F > main > div > div > form > div > div:nth-child(1) > div.ST_outerWrapper_1nl4rhj.ST_medium_1nl4rhj > div > div > div > div > div > div > div.IPT_inputBlockCell_1nl4rhj.ST_inputBlockCell_1nl4rhj`),
-	//	chromedp.Sleep(time.Second),
-	//	chromedp.Click(`body > div.PT_outerWrapper_1nl4rhj.PP_outerWrapper_1nl4rhj.ST_dropdown_1nl4rhj.ST_mediumDropdown_1nl4rhj.PT_dropdown_1nl4rhj.PT_portalBottomLeft_1nl4rhj.PT_inCustom_1nl4rhj.PP_dropdown_1nl4rhj > div > div > div > div > ul > li:nth-child(3)`),
-	//	chromedp.Sleep(time.Second),
-	//	chromedp.Click(`#root > div.App_mc-content__wmMCn > div.App_mc-main-wrapper__2im7F > main > div > div > form > div > button`),
-	//	t.log("福建省爬虫查询"),
-	//)
-	//if err != nil {
-	//	log.Println(err)
-	//}
 	log.Println("该轮爬虫结束")
+	log.Println("开始爬取数据")
+	t.grapData()
+	log.Println("结束爬取数据")
+
 	t.ctx = ctx
+}
+
+func (t *Task) grapData() {
+	for k, item := range orderReqs {
+		log.Printf("订单地区:%d开始抓包", k)
+		time.Sleep(time.Second * 5)
+		for d := 7; d >= 0; d-- {
+			s := time.Now().UnixMilli() - 86400000*int64(d)
+			e := s
+			for i := 1; i < 3; i++ {
+				o := item.orderParams
+				o.Page = i
+				o.PageSize = 100
+				o.StartSessionTime = s
+				o.EndSessionTime = e
+				b, _ := json.Marshal(o)
+				postReq, err := http.NewRequest(http.MethodPost, orderUrl, bytes.NewBuffer(b))
+				if err != nil {
+					log.Println(err)
+				}
+				c := &http.Client{}
+				for k, r := range item.headers {
+					postReq.Header.Set(k, fmt.Sprintf("%s", r))
+				}
+				for _, cookie := range cookies {
+					postReq.AddCookie(cookie)
+				}
+				resp, err := c.Do(postReq)
+				if err != nil {
+					log.Println(err)
+					log.Println("发送请求销售地址失败")
+					return
+				}
+				defer resp.Body.Close()
+
+				body, _ := ioutil.ReadAll(resp.Body)
+				var r OrderResp
+				json.Unmarshal(body, &r)
+				if r.Result.Total == 0 || len(r.Result.ResultList) == 0 {
+					continue
+				}
+				date := time.UnixMilli(r.Result.ResultList[0].SessionDate).Format("2006-01-02")
+				http.PostForm("http://api.mxb.j1mi.com/index/transfer?use=ajax", url.Values{
+					"data": {string(body)},
+					"from": {"order"},
+					"date": {date},
+					"params": {string(b)},
+				})
+				time.Sleep(time.Second * 2)
+			}
+		}
+		log.Printf("订单地区: %d结束抓包", k)
+	}
+	for k, item := range shouhouReqs {
+		log.Printf("售后地区:%d开始抓包", k)
+		for i := 1; i < 6; i++ {
+			o := item.shouHouParams
+			o.AreaId = k
+			o.PageNum = i
+			o.PageSize = 30
+			for j := -1; j > -7; j-- {
+				n := time.Now().AddDate(0, 0, j)
+				d := n.Format("2006-01-02")
+
+				o.StartDate = d
+				o.EndDate = d
+				b, _ := json.Marshal(o)
+
+				postReq, err := http.NewRequest(http.MethodPost, shouhouUrl, bytes.NewBuffer(b))
+				if err != nil {
+					log.Println(err)
+				}
+				c := &http.Client{}
+				for k, r := range item.headers {
+					postReq.Header.Set(k, fmt.Sprintf("%s", r))
+				}
+				for _, c := range cookies {
+					postReq.AddCookie(c)
+				}
+				resp, err := c.Do(postReq)
+				if err != nil {
+					log.Println(err)
+					log.Println("发送请求售后地址失败")
+					return
+				}
+				defer resp.Body.Close()
+
+				body, _ := ioutil.ReadAll(resp.Body)
+				var r ShouHouResp
+				json.Unmarshal(body, &r)
+				if r.Success == false {
+					continue
+				}
+				http.PostForm("http://api.mxb.j1mi.com/index/transfer?use=ajax", url.Values{
+					"data": {string(body)},
+					"from": {"shouhou"},
+					"date": {d},
+					"params": {string(b)},
+				})
+			}
+		}
+		log.Printf("售后地区:%d结束抓包", k)
+	}
 }
 
 func (t *Task) log(flag string) chromedp.ActionFunc {
