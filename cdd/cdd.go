@@ -357,12 +357,23 @@ func (t *Task) grapData() {
 					continue
 				}
 				date := time.UnixMilli(r.Result.ResultList[0].SessionDate).Format("2006-01-02")
+				for _, resultList := range r.Result.ResultList {
+					for _, specQuantityDetail := range resultList.SpecQuantityDetails {
+						for _, priceDetail := range specQuantityDetail.PriceDetail {
+							if priceDetail.SupplierPrice == nil {
+								goto next
+							}
+						}
+					}
+				}
+
 				http.PostForm("http://api.mxb.j1mi.com/index/transfer?use=ajax", url.Values{
 					"data": {string(body)},
 					"from": {"order"},
 					"date": {date},
 					"params": {string(b)},
 				})
+next:
 				time.Sleep(time.Second * 2)
 			}
 		}
