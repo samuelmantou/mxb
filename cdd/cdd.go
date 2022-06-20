@@ -346,7 +346,6 @@ func (t *Task) grapData() {
 				if err != nil {
 					log.Println(err)
 					log.Println("发送请求销售地址失败")
-					return
 				}
 				defer resp.Body.Close()
 
