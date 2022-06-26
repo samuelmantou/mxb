@@ -371,6 +371,7 @@ func (t *Task) grapData() {
 					"from": {"order"},
 					"date": {date},
 					"params": {string(b)},
+					"area_id": {string(o.AreaId)},
 				})
 next:
 				time.Sleep(time.Second * 2)
@@ -422,6 +423,7 @@ next:
 					"from": {"shouhou"},
 					"date": {d},
 					"params": {string(b)},
+					"area_id": {string(o.AreaId)},
 				})
 			}
 		}
