@@ -159,16 +159,16 @@ type ShouHouResp struct {
 }
 
 type OrderBaseReq struct {
-	headers network.Headers
-	orderParams OrderReq
+	headers       network.Headers
+	orderParams   OrderReq
 	shouHouParams ShouHouReq
 }
 
 var (
-	orderReqs = make(map[int]OrderBaseReq)
+	orderReqs   = make(map[int]OrderBaseReq)
 	shouhouReqs = make(map[int]OrderBaseReq)
-	orderUrl = "https://mc.pinduoduo.com/cartman-mms/orderManagement/pageQueryDetail"
-	shouhouUrl = "https://mc.pinduoduo.com/ragnaros-mms/after/sales/manage/queryProductAfterSalesStatistic"
+	orderUrl    = "https://mc.pinduoduo.com/cartman-mms/orderManagement/pageQueryDetail"
+	shouhouUrl  = "https://mc.pinduoduo.com/ragnaros-mms/after/sales/manage/queryProductAfterSalesStatistic"
 )
 
 func listenForNetworkEvent(ctx context.Context) {
@@ -181,7 +181,7 @@ func listenForNetworkEvent(ctx context.Context) {
 					log.Println(err)
 				}
 				orderReqs[o.AreaId] = OrderBaseReq{
-					headers: req.Headers,
+					headers:     req.Headers,
 					orderParams: o,
 				}
 			}
@@ -193,7 +193,7 @@ func listenForNetworkEvent(ctx context.Context) {
 					}
 					for _, areaId := range []int{4, 19881230, 19881231} {
 						shouhouReqs[areaId] = OrderBaseReq{
-							headers: req.Headers,
+							headers:       req.Headers,
 							shouHouParams: o,
 						}
 					}
@@ -352,7 +352,9 @@ func (t *Task) grapData() {
 
 				body, _ := ioutil.ReadAll(resp.Body)
 				var r OrderResp
-				json.Unmarshal(body, &r)
+				if err = json.Unmarshal(body, &r); err != nil {
+					log.Println("json订单解码失败：" + err.Error())
+				}
 				if r.Result.Total == 0 || len(r.Result.ResultList) == 0 {
 					continue
 				}
@@ -367,14 +369,18 @@ func (t *Task) grapData() {
 					}
 				}
 
-				http.PostForm("http://api.mxb.j1mi.com/index/transfer?use=ajax", url.Values{
-					"data": {string(body)},
-					"from": {"order"},
-					"date": {date},
-					"params": {string(b)},
+				log.Println("开始发送订单抓包数据")
+				_, err = http.PostForm("http://api.mxb.j1mi.com/index/transfer?use=ajax", url.Values{
+					"data":    {string(body)},
+					"from":    {"order"},
+					"date":    {date},
+					"params":  {string(b)},
 					"area_id": {strconv.Itoa(o.AreaId)},
 				})
-next:
+				if err != nil {
+					log.Println("发送订单数据失败：" + err.Error())
+				}
+			next:
 				time.Sleep(time.Second * 2)
 			}
 		}
@@ -415,17 +421,23 @@ next:
 
 				body, _ := ioutil.ReadAll(resp.Body)
 				var r ShouHouResp
-				json.Unmarshal(body, &r)
+				if err = json.Unmarshal(body, &r); err != nil {
+					log.Println("json解码失败：" + err.Error())
+				}
 				if r.Success == false {
 					continue
 				}
-				http.PostForm("http://api.mxb.j1mi.com/index/transfer?use=ajax", url.Values{
-					"data": {string(body)},
-					"from": {"shouhou"},
-					"date": {d},
-					"params": {string(b)},
+				log.Println("开始发送售后抓包数据")
+				_, err = http.PostForm("http://api.mxb.j1mi.com/index/transfer?use=ajax", url.Values{
+					"data":    {string(body)},
+					"from":    {"shouhou"},
+					"date":    {d},
+					"params":  {string(b)},
 					"area_id": {strconv.Itoa(o.AreaId)},
 				})
+				if err != nil {
+					log.Println("发送售后数据失败：" + err.Error())
+				}
 			}
 		}
 		log.Printf("售后地区:%d结束抓包", k)
