@@ -53,7 +53,7 @@ func Run() {
 		if err != nil {
 			panic(err)
 		}
-		ldate := time.Now().Add(time.Hour * 24 * -7)
+		ldate := time.Now().Add(time.Hour * 24 * -20)
 		ldateStr := ldate.Format("2006-01-02")
 		rows, err := db.Raw("Select e.FAuxQty, e.FDCStockID, e.FItemID, e.FQty, e.FSCStockID, e.FInterID, b.FDate, i.FName, i.FNumber, ds.FName as dsName, sc.FName as scName " +
 			"FROM ICStockBill b " +
